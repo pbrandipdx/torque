@@ -70,6 +70,24 @@
   .tcard h3 span{color:var(--muted);font-weight:500;font-size:12.5px}
   .widget{min-height:420px}
   .geo-row .widget{min-height:360px}
+  /* tracking view */
+  .tk-shopper{background:#eef2f7;border-radius:12px;padding:16px;text-align:center;margin-bottom:6px}
+  .tk-shopper b{font-size:15px}
+  .tk-shopper .flow{color:var(--muted);font-size:13px;margin-top:5px}
+  .tk-arrows{display:grid;grid-template-columns:repeat(3,1fr);justify-items:center;color:#c2ccd9;font-size:18px;margin:3px 0}
+  .tk-row{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:4px}
+  .tk-box{background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--good);border-radius:11px;padding:14px 15px;box-shadow:0 1px 3px rgba(16,27,45,.05)}
+  .tk-box h4{margin:0 0 5px;font-size:14px;color:#15803d}
+  .tk-box p{margin:0;font-size:12.5px;color:var(--muted);line-height:1.5}
+  .tk-alert{background:#fdf6e8;border:1px solid #f0dca0;border-left:4px solid var(--warn);border-radius:11px;padding:15px 18px;margin-top:18px}
+  .tk-alert h3{margin:0 0 6px;font-size:14.5px;color:#9a6f12}
+  .tk-alert p{margin:3px 0;font-size:13px;color:#7a5e1a;line-height:1.55}
+  .tk-fix{background:#eef0ff;border:1px solid #c9c8f0;border-left:4px solid #6b68d6;border-radius:11px;padding:15px 18px;margin-top:14px}
+  .tk-fix h3{margin:0 0 8px;font-size:14.5px;color:#4b48ad}
+  .tk-fix .step{font-size:13px;color:#46456f;line-height:1.55;margin:7px 0}
+  .tk-fix .step b{color:#2a2960}
+  .tk-fix .closing{font-size:12.5px;color:#6b6aa0;margin-top:9px;font-style:italic}
+  @media(max-width:760px){.tk-row,.tk-arrows{grid-template-columns:1fr}.tk-arrows{display:none}}
   /* generic placeholder */
   .placeholder{background:var(--panel);border-radius:14px;padding:60px 28px;text-align:center;color:var(--muted);box-shadow:0 1px 3px rgba(16,27,45,.06)}
   .placeholder .big{font-size:34px;margin-bottom:10px;opacity:.5}
@@ -96,6 +114,7 @@
     <nav class="nav"><a data-view="placeholder" data-label="Influencers"><span class="ico">👥</span> Influencers</a></nav>
     <div class="navgroup">WORKSPACE</div>
     <nav class="nav">
+      <a data-view="tracking"><span class="ico">🛰️</span> Tracking setup</a>
       <a data-view="placeholder" data-label="Reports &amp; export"><span class="ico">⬇</span> Reports &amp; export</a>
       <a data-view="placeholder" data-label="Settings"><span class="ico">⚙</span> Settings</a>
     </nav>
@@ -173,6 +192,53 @@
       </div>
 
       <p class="source">Data: Google Trends · U.S. · past 12 months · widgets are interactive — hover, change ranges, click "Explore" for the full view. If a panel is blank, wait a few seconds or reload (Google rate-limits rapid reloads).</p>
+    </section>
+
+    <!-- VIEW: Tracking setup -->
+    <section class="view" id="view-tracking">
+      <div class="head">
+        <div>
+          <h1>Tracking setup · <span class="b">Torque Optics</span></h1>
+          <p>How torqueoptics.com tracks visitors today — what's live, the engagement-analytics gap, and the recommended fix.</p>
+        </div>
+        <div class="controls">
+          <span class="badge" style="background:#e3f5ea;color:#15803d;border-color:#bfe6cd"><span class="dot"></span> Installed &amp; live</span>
+          <span class="badge" style="background:#fdf3da;color:#b8861f;border-color:#f0dca0"><span class="dot" style="background:#d8a72a"></span> Missing / to add</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="tk-shopper">
+          <b>Shopper on torqueoptics.com</b>
+          <div class="flow">page view → product view → add to cart → checkout → purchase · email signup</div>
+        </div>
+        <div class="tk-arrows"><span>↓</span><span>↓</span><span>↓</span></div>
+        <div class="tk-row">
+          <div class="tk-box"><h4>Shopify Trekkie + Monorail</h4><p>first-party tracker · auto on every Shopify store</p></div>
+          <div class="tk-box"><h4>Meta (Facebook) Pixel</h4><p>ad + conversion tracking · ID 991306440263922</p></div>
+          <div class="tk-box"><h4>Klaviyo onsite JS</h4><p>email/SMS + behavior · ID W5iY8Y</p></div>
+        </div>
+        <div class="tk-arrows"><span>↓</span><span>↓</span><span>↓</span></div>
+        <div class="tk-row">
+          <div class="tk-box"><h4>Shopify Admin → Analytics</h4><p>sessions · traffic sources · conversion rate · sales · top pages · location/device</p></div>
+          <div class="tk-box"><h4>Meta Events / Ads Manager</h4><p>ad attribution &amp; ROAS · retargeting audiences</p></div>
+          <div class="tk-box"><h4>Klaviyo Dashboard</h4><p>email/SMS performance · signups &amp; flow revenue</p></div>
+        </div>
+
+        <div class="tk-alert">
+          <h3>⚠ The hole: website engagement analytics</h3>
+          <p>Not captured by any tool above: time on site · session duration · scroll depth · multi-page user flows · funnel drop-off.</p>
+          <p>Reason: no Google Analytics (GA4) and no Google Tag Manager installed. Also absent: TikTok / Pinterest pixels, server-side tracking.</p>
+          <p><em>Shopify reports how many came and whether they bought — not how engaged they were.</em></p>
+        </div>
+
+        <div class="tk-fix">
+          <h3>Recommended fix — in two layers</h3>
+          <div class="step"><b>1 · Fill the data gap (free):</b> Add GA4 via Google Tag Manager → unlocks engagement, time-on-page, scroll, and cross-page flow reporting.</div>
+          <div class="step"><b>2 · Stitch it into one picture (paid aggregator):</b> Triple Whale — fast, ad-focused, easiest for a DTC brand this size (~$129–300+/mo). Polar Analytics — deeper, customizable BI / multi-store (~$300+/mo). Free DIY route — Looker Studio pulling Shopify + GA4 + Meta + Klaviyo into one dashboard.</div>
+          <div class="closing">Each connects Shopify + Meta + Klaviyo (+GA4) so traffic, ads, email &amp; engagement live on one screen.</div>
+        </div>
+      </div>
     </section>
 
     <!-- VIEW: generic placeholder -->
