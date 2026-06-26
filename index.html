@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Competitor Scorecard · Torque Optics</title>
+<style>
+  :root{
+    --bg:#f4f6f8; --panel:#ffffff; --ink:#0f1b2d; --muted:#6b7a90;
+    --sidebar:#0e1726; --sidebar-muted:#7f8ba0; --accent:#3b7bf6;
+    --bar:#4d8bf5; --good-bg:#e3f5ea; --good:#1f9d57; --warn-bg:#fdf3da; --warn:#b8861f;
+    --row:#eef2f7; --you:#e8eefb; --line:#e6eaf0;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);}
+  .app{display:flex;min-height:100vh}
+  .side{width:248px;background:var(--sidebar);color:#fff;flex-shrink:0;padding:22px 16px;}
+  .logo{display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:.5px;font-size:22px;margin:4px 6px 22px}
+  .logo svg{width:34px;height:34px}
+  .launch{background:#16223a;border-radius:10px;padding:12px 14px;margin-bottom:24px}
+  .launch .dot{width:9px;height:9px;border-radius:50%;background:#2ec27e;display:inline-block;margin-right:8px}
+  .launch b{font-size:14px}
+  .launch span{display:block;color:var(--sidebar-muted);font-size:12px;margin-top:3px;padding-left:17px}
+  .navgroup{color:var(--sidebar-muted);font-size:11px;letter-spacing:1px;margin:18px 8px 8px}
+  .nav a{display:flex;align-items:center;gap:11px;color:#c7d0de;text-decoration:none;padding:10px 12px;border-radius:9px;font-size:14.5px;margin-bottom:2px;cursor:pointer}
+  .nav a.active{background:var(--accent);color:#fff;font-weight:600}
+  .nav a:hover:not(.active){background:#16223a}
+  .ico{width:17px;height:17px;display:inline-block;opacity:.85}
+  .main{flex:1;padding:26px 34px}
+  /* views */
+  .view{display:none}
+  .view.active{display:block}
+  .head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:20px}
+  .head h1{font-size:24px;margin:0 0 6px}
+  .head h1 .b{color:var(--accent)}
+  .head p{margin:0;color:var(--muted);font-size:14px;max-width:660px;line-height:1.5}
+  .controls{display:flex;align-items:center;gap:14px;flex-shrink:0}
+  .seg{display:flex;background:#fff;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+  .seg button{border:0;background:#fff;padding:7px 13px;font-size:13px;color:var(--muted);cursor:pointer}
+  .seg button.on{background:var(--accent);color:#fff}
+  .updated{color:var(--muted);font-size:12.5px}
+  .refresh{border:1px solid var(--line);background:#fff;border-radius:8px;padding:8px 14px;font-size:13px;cursor:pointer;color:var(--ink)}
+  .refresh:disabled{opacity:.6;cursor:default}
+  .refresh.spinning{pointer-events:none}
+  .badge{display:inline-flex;align-items:center;gap:7px;background:var(--good-bg);color:#15803d;border:1px solid #bfe6cd;border-radius:20px;padding:7px 13px;font-size:12.5px;font-weight:600;white-space:nowrap}
+  .badge .dot{width:8px;height:8px;border-radius:50%;background:var(--good);display:inline-block}
+  .card{background:var(--panel);border-radius:14px;padding:26px 28px;box-shadow:0 1px 3px rgba(16,27,45,.06)}
+  .card h2{font-size:16px;margin:0 0 18px}
+  table{width:100%;border-collapse:collapse}
+  thead th{text-align:left;font-size:11px;letter-spacing:.6px;color:var(--muted);font-weight:600;padding:0 12px 12px;border-bottom:1px solid var(--line)}
+  tbody td{padding:13px 12px;font-size:14.5px;border-bottom:1px solid var(--row)}
+  tbody tr:last-child td{border-bottom:0}
+  .brand{font-weight:600}
+  .barwrap{display:flex;align-items:center;gap:10px}
+  .bar{height:15px;border-radius:4px;background:var(--bar);transition:width .55s cubic-bezier(.4,0,.2,1)}
+  .you-row{background:var(--you)}
+  .pill{display:inline-block;padding:3px 9px;border-radius:20px;font-size:12.5px;font-weight:600}
+  .pill.pos{background:var(--good-bg);color:var(--good)}
+  .pill.zero{background:var(--good-bg);color:#4f9d6f}
+  .chip{display:inline-block;min-width:26px;text-align:center;padding:3px 9px;border-radius:7px;font-size:12.5px;font-weight:600;background:var(--warn-bg);color:var(--warn)}
+  .tag{display:inline-block;background:var(--accent);color:#fff;font-size:11px;font-weight:600;border-radius:20px;padding:2px 9px;margin-left:8px;vertical-align:middle}
+  .foot{color:var(--muted);font-size:13.5px;line-height:1.55;margin-top:20px}
+  .foot b{color:var(--ink)}
+  .source{text-align:center;color:#9aa6b6;font-size:12.5px;margin-top:26px}
+  /* trends view */
+  .trends-grid{display:grid;grid-template-columns:1fr;gap:18px}
+  @media(min-width:1000px){.geo-row{display:grid;grid-template-columns:1fr 1fr;gap:18px}}
+  .tcard{background:var(--panel);border-radius:14px;padding:16px 18px 10px;box-shadow:0 1px 3px rgba(16,27,45,.06)}
+  .tcard h3{font-size:14px;margin:2px 2px 10px}
+  .tcard h3 span{color:var(--muted);font-weight:500;font-size:12.5px}
+  .widget{min-height:420px}
+  .geo-row .widget{min-height:360px}
+  /* generic placeholder */
+  .placeholder{background:var(--panel);border-radius:14px;padding:60px 28px;text-align:center;color:var(--muted);box-shadow:0 1px 3px rgba(16,27,45,.06)}
+  .placeholder .big{font-size:34px;margin-bottom:10px;opacity:.5}
+  @media(max-width:820px){.side{display:none}.main{padding:18px}}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="side">
+    <div class="logo">
+      <svg viewBox="0 0 64 32" fill="none"><circle cx="18" cy="16" r="11" stroke="#fff" stroke-width="3"/><circle cx="46" cy="16" r="11" stroke="#fff" stroke-width="3"/><path d="M29 16h6" stroke="#fff" stroke-width="3"/></svg>
+      TORQUE
+    </div>
+    <div class="launch"><span style="padding-left:0"><span class="dot"></span><b>Fulcrum launch</b></span><span>0 mentions tracked</span></div>
+    <div class="navgroup">LISTENING</div>
+    <nav class="nav">
+      <a data-view="placeholder" data-label="Overview"><span class="ico">▦</span> Overview</a>
+      <a data-view="placeholder" data-label="Conversation stream"><span class="ico">💬</span> Conversation stream</a>
+      <a data-view="scorecard" class="active"><span class="ico">🏆</span> Competitor scorecard</a>
+      <a data-view="trends"><span class="ico">📈</span> Search interest</a>
+      <a data-view="placeholder" data-label="Sources"><span class="ico">🌐</span> Sources</a>
+    </nav>
+    <div class="navgroup">AUDIENCE</div>
+    <nav class="nav"><a data-view="placeholder" data-label="Influencers"><span class="ico">👥</span> Influencers</a></nav>
+    <div class="navgroup">WORKSPACE</div>
+    <nav class="nav">
+      <a data-view="placeholder" data-label="Reports &amp; export"><span class="ico">⬇</span> Reports &amp; export</a>
+      <a data-view="placeholder" data-label="Settings"><span class="ico">⚙</span> Settings</a>
+    </nav>
+  </aside>
+
+  <main class="main">
+    <!-- VIEW: Competitor scorecard -->
+    <section class="view active" id="view-scorecard">
+      <div class="head">
+        <div>
+          <h1>Competitor scorecard · <span class="b">Torque Optics</span></h1>
+          <p>Polarized sunglasses, reimagined — Perfect Polarized™ lenses you can read screens through</p>
+        </div>
+        <div class="controls">
+          <div class="seg">
+            <button onclick="setRange(this)">7d</button>
+            <button class="on" onclick="setRange(this)">14d</button>
+            <button onclick="setRange(this)">30d</button>
+          </div>
+          <span class="updated">Updated <span id="upd">9:25:47 PM</span></span>
+          <button class="refresh" onclick="refresh()">↻ Refresh</button>
+        </div>
+      </div>
+
+      <section class="card">
+        <h2>Competitor scorecard — screen-visibility battleground</h2>
+        <table>
+          <thead>
+            <tr>
+              <th style="width:170px">BRAND</th>
+              <th style="width:300px">MENTIONS</th>
+              <th>SHARE OF VOICE</th>
+              <th>NET SENTIMENT</th>
+              <th>POSITIVE</th>
+              <th>SCREEN COMPLAINTS</th>
+            </tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+        </table>
+        <p class="foot"><b>Screen complaints</b> = negative mentions about a brand's lenses around screen visibility. Those are Perfect Polar's openings — the bigger a competitor's count, the stronger the case to target their audience with the "read your screen through polarized lenses" message.</p>
+      </section>
+
+      <p class="source">Torque Optics listening · public sources: Reddit, HN / forums, YouTube · reach &amp; engagement are public-signal estimates · sentiment is an on-device estimate.</p>
+    </section>
+
+    <!-- VIEW: Search interest (Google Trends) -->
+    <section class="view" id="view-trends">
+      <div class="head">
+        <div>
+          <h1>Search interest · <span class="b">Torque Optics</span></h1>
+          <p>Live Google Trends — relative U.S. search interest across the competitor set, past 12 months. 100 = peak interest for that term in the window. This is the free, no-key "share of attention" signal; it does not measure sentiment.</p>
+        </div>
+        <span class="badge"><span class="dot"></span> Live · Google Trends</span>
+      </div>
+
+      <div class="trends-grid">
+        <div class="tcard">
+          <h3>Heavyweights — interest over time <span>· Ray-Ban · Oakley · Maui Jim · Warby Parker · Costa Del Mar</span></h3>
+          <div class="widget" id="ts1"></div>
+        </div>
+        <div class="tcard">
+          <h3>Challengers + you — interest over time <span>· Smith Optics · Goodr · Knockaround · Torque Optics</span></h3>
+          <div class="widget" id="ts2"></div>
+        </div>
+        <div class="geo-row">
+          <div class="tcard">
+            <h3>Where each brand leads <span>· U.S. by state</span></h3>
+            <div class="widget" id="geo1"></div>
+          </div>
+          <div class="tcard">
+            <h3>Rising searches <span>· "polarized sunglasses"</span></h3>
+            <div class="widget" id="rq1"></div>
+          </div>
+        </div>
+      </div>
+
+      <p class="source">Data: Google Trends · U.S. · past 12 months · widgets are interactive — hover, change ranges, click "Explore" for the full view. If a panel is blank, wait a few seconds or reload (Google rate-limits rapid reloads).</p>
+    </section>
+
+    <!-- VIEW: generic placeholder -->
+    <section class="view" id="view-placeholder">
+      <div class="head"><div><h1 id="ph-title">Section</h1><p>This section isn't wired up in this prototype yet.</p></div></div>
+      <div class="placeholder"><div class="big">🛠️</div><div id="ph-body">Coming soon.</div></div>
+    </section>
+  </main>
+</div>
+
+<script src="https://ssl.gstatic.com/trends_nrtr/4448_RC01/embed_loader.js"></script>
+<script>
+  /* ---------- Scorecard ---------- */
+  const rows = [
+    {brand:"Oakley",       mentions:9, sov:"24%", sent:"+67%", pos:6, comp:0},
+    {brand:"Ray-Ban",      mentions:8, sov:"21%", sent:"+63%", pos:5, comp:0},
+    {brand:"Maui Jim",     mentions:6, sov:"16%", sent:"+67%", pos:4, comp:0},
+    {brand:"Smith",        mentions:4, sov:"11%", sent:"+50%", pos:2, comp:0},
+    {brand:"Goodr",        mentions:4, sov:"11%", sent:"+25%", pos:2, comp:1},
+    {brand:"Knockaround",  mentions:3, sov:"8%",  sent:"+67%", pos:2, comp:0},
+    {brand:"Warby Parker", mentions:3, sov:"8%",  sent:"+67%", pos:2, comp:0},
+    {brand:"Costa",        mentions:1, sov:"3%",  sent:"0%",   pos:0, comp:0},
+    {brand:"Torque Optics",mentions:0, sov:"0%",  sent:"0%",   pos:0, comp:0, you:true},
+  ];
+  const maxM = 9, maxBar = 280;
+  const sentClass = s => s.startsWith("+") ? "pos" : "zero";
+  function render(){
+    document.getElementById("tbody").innerHTML = rows.map(r=>{
+      const w = Math.max(r.mentions/maxM*maxBar, r.mentions===0?3:14);
+      return `<tr class="${r.you?'you-row':''}">
+        <td class="brand">${r.brand}${r.you?'<span class="tag">you</span>':''}</td>
+        <td><div class="barwrap"><div class="bar" style="width:${w}px"></div><span>${r.mentions}</span></div></td>
+        <td>${r.sov}</td>
+        <td><span class="pill ${sentClass(r.sent)}">${r.sent}</span></td>
+        <td>${r.pos}</td>
+        <td><span class="chip">${r.comp}</span></td>
+      </tr>`;
+    }).join("");
+  }
+  function setRange(btn){ document.querySelectorAll('.seg button').forEach(b=>b.classList.remove('on')); btn.classList.add('on'); }
+  function stamp(){
+    const d = new Date();
+    let h=d.getHours(), m=d.getMinutes(), s=d.getSeconds(), ap=h>=12?'PM':'AM';
+    h=h%12||12;
+    document.getElementById('upd').textContent = `${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')} ${ap}`;
+  }
+  function refresh(){
+    const btn = document.querySelector('.refresh');
+    if(btn.classList.contains('spinning')) return;
+    btn.classList.add('spinning'); btn.disabled = true; btn.textContent = '⏳ Refreshing…';
+    document.querySelectorAll('#tbody .bar').forEach(b=>{ b.dataset.w = b.style.width; b.style.width = '0px'; });
+    setTimeout(()=>{
+      document.querySelectorAll('#tbody .bar').forEach(b=>{ b.style.width = b.dataset.w; });
+      stamp();
+      btn.classList.remove('spinning'); btn.disabled = false; btn.textContent = '↻ Refresh';
+    }, 600);
+  }
+
+  /* ---------- Google Trends (lazy render on first open) ---------- */
+  let trendsRendered = false;
+  function renderTrends(){
+    if(trendsRendered) return;
+    if(!window.trends || !trends.embed){ return setTimeout(renderTrends, 300); }
+    trendsRendered = true;
+    const T = "today 12-m", G = "US";
+    const item = k => ({keyword:k, geo:G, time:T});
+    trends.embed.renderExploreWidget("TIMESERIES",
+      {comparisonItem:["Ray-Ban","Oakley","Maui Jim","Warby Parker","Costa Del Mar"].map(item),category:0,property:""},
+      {exploreQuery:"date=today 12-m&geo=US&q=Ray-Ban,Oakley,Maui Jim,Warby Parker,Costa Del Mar","guestPath":"https://trends.google.com:443/trends/embed/",element:document.getElementById("ts1")});
+    trends.embed.renderExploreWidget("TIMESERIES",
+      {comparisonItem:["Smith Optics","Goodr","Knockaround","Torque Optics"].map(item),category:0,property:""},
+      {exploreQuery:"date=today 12-m&geo=US&q=Smith Optics,Goodr,Knockaround,Torque Optics","guestPath":"https://trends.google.com:443/trends/embed/",element:document.getElementById("ts2")});
+    trends.embed.renderExploreWidget("GEO_MAP",
+      {comparisonItem:["Ray-Ban","Oakley","Maui Jim"].map(item),category:0,property:""},
+      {exploreQuery:"date=today 12-m&geo=US&q=Ray-Ban,Oakley,Maui Jim","guestPath":"https://trends.google.com:443/trends/embed/",element:document.getElementById("geo1")});
+    trends.embed.renderExploreWidget("RELATED_QUERIES",
+      {comparisonItem:[item("polarized sunglasses")],category:0,property:""},
+      {exploreQuery:"date=today 12-m&geo=US&q=polarized sunglasses","guestPath":"https://trends.google.com:443/trends/embed/",element:document.getElementById("rq1")});
+  }
+
+  /* ---------- Nav / view switching ---------- */
+  function switchView(view, label){
+    document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+    const el = document.getElementById('view-' + view) || document.getElementById('view-placeholder');
+    el.classList.add('active');
+    if(view === 'placeholder'){
+      document.getElementById('ph-title').textContent = label || 'Section';
+      document.getElementById('ph-body').textContent = (label || 'This section') + ' isn’t part of this prototype yet.';
+    }
+    if(view === 'trends'){ renderTrends(); }
+  }
+  document.querySelectorAll('.nav a').forEach(a=>{
+    a.addEventListener('click', e=>{
+      e.preventDefault();
+      document.querySelectorAll('.nav a').forEach(x=>x.classList.remove('active'));
+      a.classList.add('active');
+      switchView(a.dataset.view, a.dataset.label);
+    });
+  });
+
+  render();
+</script>
+</body>
+</html>
