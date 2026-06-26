@@ -107,7 +107,7 @@
       <a data-view="placeholder" data-label="Overview"><span class="ico">▦</span> Overview</a>
       <a data-view="placeholder" data-label="Conversation stream"><span class="ico">💬</span> Conversation stream</a>
       <a data-view="scorecard" class="active"><span class="ico">🏆</span> Competitor scorecard</a>
-      <a data-view="trends"><span class="ico">📈</span> Search interest</a>
+      <a href="search-interest.html" target="_blank" rel="noopener"><span class="ico">📈</span> Search interest <span style="opacity:.6;font-size:12px">↗</span></a>
       <a data-view="placeholder" data-label="Sources"><span class="ico">🌐</span> Sources</a>
     </nav>
     <div class="navgroup">AUDIENCE</div>
@@ -158,40 +158,6 @@
       </section>
 
       <p class="source">Torque Optics listening · public sources: Reddit, HN / forums, YouTube · reach &amp; engagement are public-signal estimates · sentiment is an on-device estimate.</p>
-    </section>
-
-    <!-- VIEW: Search interest (Google Trends) -->
-    <section class="view" id="view-trends">
-      <div class="head">
-        <div>
-          <h1>Search interest · <span class="b">Torque Optics</span></h1>
-          <p>Live Google Trends — relative U.S. search interest across the competitor set, past 12 months. 100 = peak interest for that term in the window. This is the free, no-key "share of attention" signal; it does not measure sentiment.</p>
-        </div>
-        <span class="badge"><span class="dot"></span> Live · Google Trends</span>
-      </div>
-
-      <div class="trends-grid">
-        <div class="tcard">
-          <h3>Heavyweights — interest over time <span>· Ray-Ban · Oakley · Maui Jim · Warby Parker · Costa Del Mar</span></h3>
-          <div class="widget" id="ts1"></div>
-        </div>
-        <div class="tcard">
-          <h3>Challengers + you — interest over time <span>· Smith Optics · Goodr · Knockaround · Torque Optics</span></h3>
-          <div class="widget" id="ts2"></div>
-        </div>
-        <div class="geo-row">
-          <div class="tcard">
-            <h3>Where each brand leads <span>· U.S. by state</span></h3>
-            <div class="widget" id="geo1"></div>
-          </div>
-          <div class="tcard">
-            <h3>Rising searches <span>· "polarized sunglasses"</span></h3>
-            <div class="widget" id="rq1"></div>
-          </div>
-        </div>
-      </div>
-
-      <p class="source">Data: Google Trends · U.S. · past 12 months · widgets are interactive — hover, change ranges, click "Explore" for the full view. If a panel is blank, wait a few seconds or reload (Google rate-limits rapid reloads).</p>
     </section>
 
     <!-- VIEW: Tracking setup -->
@@ -249,7 +215,6 @@
   </main>
 </div>
 
-<script src="https://ssl.gstatic.com/trends_nrtr/4448_RC01/embed_loader.js"></script>
 <script>
   /* ---------- Scorecard ---------- */
   const rows = [
@@ -297,28 +262,6 @@
     }, 600);
   }
 
-  /* ---------- Google Trends (lazy render on first open) ---------- */
-  let trendsRendered = false;
-  function renderTrends(){
-    if(trendsRendered) return;
-    if(!window.trends || !trends.embed){ return setTimeout(renderTrends, 300); }
-    trendsRendered = true;
-    const T = "today 12-m", G = "US";
-    const item = k => ({keyword:k, geo:G, time:T});
-    trends.embed.renderExploreWidget("TIMESERIES",
-      {comparisonItem:["Ray-Ban","Oakley","Maui Jim","Warby Parker","Costa Del Mar"].map(item),category:0,property:""},
-      {exploreQuery:"date=today 12-m&geo=US&q=Ray-Ban,Oakley,Maui Jim,Warby Parker,Costa Del Mar","guestPath":"https://trends.google.com:443/trends/embed/",element:document.getElementById("ts1")});
-    trends.embed.renderExploreWidget("TIMESERIES",
-      {comparisonItem:["Smith Optics","Goodr","Knockaround","Torque Optics"].map(item),category:0,property:""},
-      {exploreQuery:"date=today 12-m&geo=US&q=Smith Optics,Goodr,Knockaround,Torque Optics","guestPath":"https://trends.google.com:443/trends/embed/",element:document.getElementById("ts2")});
-    trends.embed.renderExploreWidget("GEO_MAP",
-      {comparisonItem:["Ray-Ban","Oakley","Maui Jim"].map(item),category:0,property:""},
-      {exploreQuery:"date=today 12-m&geo=US&q=Ray-Ban,Oakley,Maui Jim","guestPath":"https://trends.google.com:443/trends/embed/",element:document.getElementById("geo1")});
-    trends.embed.renderExploreWidget("RELATED_QUERIES",
-      {comparisonItem:[item("polarized sunglasses")],category:0,property:""},
-      {exploreQuery:"date=today 12-m&geo=US&q=polarized sunglasses","guestPath":"https://trends.google.com:443/trends/embed/",element:document.getElementById("rq1")});
-  }
-
   /* ---------- Nav / view switching ---------- */
   function switchView(view, label){
     document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
@@ -328,9 +271,8 @@
       document.getElementById('ph-title').textContent = label || 'Section';
       document.getElementById('ph-body').textContent = (label || 'This section') + ' isn’t part of this prototype yet.';
     }
-    if(view === 'trends'){ renderTrends(); }
   }
-  document.querySelectorAll('.nav a').forEach(a=>{
+  document.querySelectorAll('.nav a[data-view]').forEach(a=>{
     a.addEventListener('click', e=>{
       e.preventDefault();
       document.querySelectorAll('.nav a').forEach(x=>x.classList.remove('active'));
