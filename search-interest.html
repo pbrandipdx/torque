@@ -98,59 +98,63 @@
   ];
 
   const GUEST = "https://trends.google.com:443/trends/embed/";
+  const ORDER = WIDGETS.map(w => w.el);
 
-  // Snapshot of iframes anywhere in the doc, so we can detect the new one.
-  function iframeSet(){ return new Set(document.querySelectorAll("iframe")); }
-
-  // Find an iframe that appeared since `before` and isn't already in a card.
-  function findNewIframe(before){
-    return [...document.querySelectorAll("iframe")].find(f =>
-      !before.has(f) && !f.closest(".widget"));
+  // First card (in render order) that doesn't yet hold a chart.
+  function nextEmptyCard(){
+    for(const id of ORDER){
+      const c = document.getElementById(id);
+      if(c && !c.querySelector("iframe")) return c;
+    }
+    return null;
   }
 
-  function placeInCard(card, frame){
-    const loader = card.querySelector(".loading");
-    if(loader) loader.remove();
-    card.appendChild(frame);
-    // Google wraps the iframe height inline; let our CSS handle width.
+  // Move any iframe the loader dumped on <body> into the next empty card.
+  // We render sequentially, so the Nth stray belongs to the Nth card.
+  function relocateStrays(){
+    document.querySelectorAll("iframe").forEach(f => {
+      if(f.closest(".widget")) return;       // already placed
+      const card = nextEmptyCard();
+      if(!card) return;
+      const loader = card.querySelector(".loading");
+      if(loader) loader.remove();
+      card.appendChild(f);                    // CSS forces width:100%
+    });
   }
+
+  // Safety net: catch late / out-of-order iframes even after a render resolves.
+  const observer = new MutationObserver(relocateStrays);
 
   function renderOne(w){
     return new Promise(resolve => {
       const card = document.getElementById(w.el);
-      const before = iframeSet();
       try {
         trends.embed.renderExploreWidget(
           w.type, w.payload,
           Object.assign({guestPath:GUEST, element:card}, w.opts)
         );
-      } catch(e){ /* ignore, polling below will simply time out */ }
+      } catch(e){ /* polling below will simply time out */ }
 
       let tries = 0;
       const iv = setInterval(() => {
-        // If the loader behaved and dropped it straight into the card, we're done.
-        const inCard = card.querySelector("iframe");
-        if(inCard){
+        relocateStrays();
+        if(card.querySelector("iframe")){
           const loader = card.querySelector(".loading");
           if(loader) loader.remove();
           clearInterval(iv);
           return resolve();
         }
-        // Otherwise grab the stray iframe it appended elsewhere and move it in.
-        const stray = findNewIframe(before);
-        if(stray){
-          placeInCard(card, stray);
-          clearInterval(iv);
-          return resolve();
-        }
-        if(++tries > 80){ clearInterval(iv); resolve(); } // ~12s safety cap
+        if(++tries > 200){ clearInterval(iv); resolve(); } // ~30s cap per widget
       }, 150);
     });
   }
 
   async function run(){
     if(!window.trends || !trends.embed){ return setTimeout(run, 300); }
+    observer.observe(document.body, {childList:true, subtree:true});
     for(const w of WIDGETS){ await renderOne(w); }
+    // Keep watching briefly for any stragglers, then stop.
+    setTimeout(() => observer.disconnect(), 15000);
   }
   run();
 </script>
