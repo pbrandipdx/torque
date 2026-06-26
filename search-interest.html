@@ -26,8 +26,10 @@
   .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 18px 10px;box-shadow:0 1px 3px rgba(16,27,45,.05)}
   .card h2{font-size:14px;margin:2px 2px 10px}
   .card h2 span{color:var(--muted);font-weight:500;font-size:12.5px}
-  .widget{min-height:420px}
+  .widget{min-height:420px;position:relative}
   .geo-row .widget{min-height:360px}
+  .widget iframe{width:100%!important;min-width:0!important;border:0!important}
+  .widget .loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#9aa6b6;font-size:13px}
   .note{color:#8595aa;font-size:12.5px;line-height:1.55;margin-top:24px;border-top:1px solid var(--line);padding-top:16px}
   .note b{color:var(--ink)}
 </style>
@@ -48,20 +50,20 @@
   <div class="grid">
     <div class="card">
       <h2>Heavyweights — interest over time <span>· Ray-Ban · Oakley · Maui Jim · Warby Parker · Costa Del Mar</span></h2>
-      <div class="widget" id="ts1"></div>
+      <div class="widget" id="ts1"><div class="loading">Loading Google Trends…</div></div>
     </div>
     <div class="card">
       <h2>Challengers + you — interest over time <span>· Smith Optics · Goodr · Knockaround · Torque Optics</span></h2>
-      <div class="widget" id="ts2"></div>
+      <div class="widget" id="ts2"><div class="loading">Loading Google Trends…</div></div>
     </div>
     <div class="geo-row">
       <div class="card">
         <h2>Where each brand leads <span>· U.S. by state</span></h2>
-        <div class="widget" id="geo1"></div>
+        <div class="widget" id="geo1"><div class="loading">Loading Google Trends…</div></div>
       </div>
       <div class="card">
         <h2>Rising searches <span>· "polarized sunglasses"</span></h2>
-        <div class="widget" id="rq1"></div>
+        <div class="widget" id="rq1"><div class="loading">Loading Google Trends…</div></div>
       </div>
     </div>
   </div>
@@ -71,24 +73,86 @@
 
 <script src="https://ssl.gstatic.com/trends_nrtr/4448_RC01/embed_loader.js"></script>
 <script>
-  function renderTrends(){
-    if(!window.trends || !trends.embed){ return setTimeout(renderTrends, 300); }
-    const T = "today 12-m", G = "US";
-    const item = k => ({keyword:k, geo:G, time:T});
-    trends.embed.renderExploreWidget("TIMESERIES",
-      {comparisonItem:["Ray-Ban","Oakley","Maui Jim","Warby Parker","Costa Del Mar"].map(item),category:0,property:""},
-      {exploreQuery:"date=today 12-m&geo=US&q=Ray-Ban,Oakley,Maui Jim,Warby Parker,Costa Del Mar","guestPath":"https://trends.google.com:443/trends/embed/",element:document.getElementById("ts1")});
-    trends.embed.renderExploreWidget("TIMESERIES",
-      {comparisonItem:["Smith Optics","Goodr","Knockaround","Torque Optics"].map(item),category:0,property:""},
-      {exploreQuery:"date=today 12-m&geo=US&q=Smith Optics,Goodr,Knockaround,Torque Optics","guestPath":"https://trends.google.com:443/trends/embed/",element:document.getElementById("ts2")});
-    trends.embed.renderExploreWidget("GEO_MAP",
-      {comparisonItem:["Ray-Ban","Oakley","Maui Jim"].map(item),category:0,property:""},
-      {exploreQuery:"date=today 12-m&geo=US&q=Ray-Ban,Oakley,Maui Jim","guestPath":"https://trends.google.com:443/trends/embed/",element:document.getElementById("geo1")});
-    trends.embed.renderExploreWidget("RELATED_QUERIES",
-      {comparisonItem:[item("polarized sunglasses")],category:0,property:""},
-      {exploreQuery:"date=today 12-m&geo=US&q=polarized sunglasses","guestPath":"https://trends.google.com:443/trends/embed/",element:document.getElementById("rq1")});
+  /*
+    Google's current embed_loader.js ignores the target `element` and appends each
+    widget iframe to <body> instead of into the card you ask for — which left the
+    cards blank and the charts stacked at the bottom of the page. Fix: render the
+    widgets one at a time and move each freshly-created iframe into its card.
+  */
+  const T = "today 12-m", G = "US";
+  const item = k => ({keyword:k, geo:G, time:T});
+
+  const WIDGETS = [
+    {el:"ts1", type:"TIMESERIES",
+      payload:{comparisonItem:["Ray-Ban","Oakley","Maui Jim","Warby Parker","Costa Del Mar"].map(item),category:0,property:""},
+      opts:{exploreQuery:"date=today 12-m&geo=US&q=Ray-Ban,Oakley,Maui Jim,Warby Parker,Costa Del Mar"}},
+    {el:"ts2", type:"TIMESERIES",
+      payload:{comparisonItem:["Smith Optics","Goodr","Knockaround","Torque Optics"].map(item),category:0,property:""},
+      opts:{exploreQuery:"date=today 12-m&geo=US&q=Smith Optics,Goodr,Knockaround,Torque Optics"}},
+    {el:"geo1", type:"GEO_MAP",
+      payload:{comparisonItem:["Ray-Ban","Oakley","Maui Jim"].map(item),category:0,property:""},
+      opts:{exploreQuery:"date=today 12-m&geo=US&q=Ray-Ban,Oakley,Maui Jim"}},
+    {el:"rq1", type:"RELATED_QUERIES",
+      payload:{comparisonItem:[item("polarized sunglasses")],category:0,property:""},
+      opts:{exploreQuery:"date=today 12-m&geo=US&q=polarized sunglasses"}},
+  ];
+
+  const GUEST = "https://trends.google.com:443/trends/embed/";
+
+  // Snapshot of iframes anywhere in the doc, so we can detect the new one.
+  function iframeSet(){ return new Set(document.querySelectorAll("iframe")); }
+
+  // Find an iframe that appeared since `before` and isn't already in a card.
+  function findNewIframe(before){
+    return [...document.querySelectorAll("iframe")].find(f =>
+      !before.has(f) && !f.closest(".widget"));
   }
-  renderTrends();
+
+  function placeInCard(card, frame){
+    const loader = card.querySelector(".loading");
+    if(loader) loader.remove();
+    card.appendChild(frame);
+    // Google wraps the iframe height inline; let our CSS handle width.
+  }
+
+  function renderOne(w){
+    return new Promise(resolve => {
+      const card = document.getElementById(w.el);
+      const before = iframeSet();
+      try {
+        trends.embed.renderExploreWidget(
+          w.type, w.payload,
+          Object.assign({guestPath:GUEST, element:card}, w.opts)
+        );
+      } catch(e){ /* ignore, polling below will simply time out */ }
+
+      let tries = 0;
+      const iv = setInterval(() => {
+        // If the loader behaved and dropped it straight into the card, we're done.
+        const inCard = card.querySelector("iframe");
+        if(inCard){
+          const loader = card.querySelector(".loading");
+          if(loader) loader.remove();
+          clearInterval(iv);
+          return resolve();
+        }
+        // Otherwise grab the stray iframe it appended elsewhere and move it in.
+        const stray = findNewIframe(before);
+        if(stray){
+          placeInCard(card, stray);
+          clearInterval(iv);
+          return resolve();
+        }
+        if(++tries > 80){ clearInterval(iv); resolve(); } // ~12s safety cap
+      }, 150);
+    });
+  }
+
+  async function run(){
+    if(!window.trends || !trends.embed){ return setTimeout(run, 300); }
+    for(const w of WIDGETS){ await renderOne(w); }
+  }
+  run();
 </script>
 </body>
 </html>
