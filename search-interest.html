@@ -19,19 +19,45 @@
   .right{display:flex;flex-direction:column;align-items:flex-end;gap:8px;flex-shrink:0}
   .badge{display:inline-flex;align-items:center;gap:7px;background:var(--good-bg);color:#15803d;border:1px solid #bfe6cd;border-radius:20px;padding:7px 13px;font-size:12.5px;font-weight:600;white-space:nowrap}
   .badge .dot{width:8px;height:8px;border-radius:50%;background:var(--good);display:inline-block}
+  .ctrls{display:flex;align-items:center;gap:10px}
+  .btn{border:1px solid var(--line);background:#fff;border-radius:8px;padding:8px 14px;font-size:13px;cursor:pointer;color:var(--ink);font-weight:500}
+  .btn:hover{background:#f0f4fa}
+  .btn.busy{opacity:.6;pointer-events:none}
   .back{font-size:13px;color:var(--accent);text-decoration:none}
   .back:hover{text-decoration:underline}
   .grid{display:grid;grid-template-columns:1fr;gap:18px;margin-top:22px}
   @media(min-width:1000px){.geo-row{display:grid;grid-template-columns:1fr 1fr;gap:18px}}
-  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 18px 10px;box-shadow:0 1px 3px rgba(16,27,45,.05)}
-  .card h2{font-size:14px;margin:2px 2px 10px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 18px 14px;box-shadow:0 1px 3px rgba(16,27,45,.05)}
+  .card h2{font-size:14px;margin:2px 2px 12px}
   .card h2 span{color:var(--muted);font-weight:500;font-size:12.5px}
-  .widget{min-height:420px;position:relative}
-  .geo-row .widget{min-height:360px}
-  .widget iframe{width:100%!important;min-width:0!important;border:0!important}
-  .widget .loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#9aa6b6;font-size:13px}
+  .chartbox{position:relative;height:300px}
+  .legend{display:flex;flex-wrap:wrap;gap:14px;margin:2px 2px 12px;font-size:12.5px;color:var(--muted)}
+  .legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:middle}
+  /* geo */
+  .geonote{font-size:12.5px;color:var(--muted);margin:0 2px 12px;line-height:1.5}
+  .statelist{max-height:300px;overflow-y:auto;padding-right:6px}
+  .strow{display:grid;grid-template-columns:120px 1fr 38px;align-items:center;gap:10px;padding:5px 2px;font-size:12.5px}
+  .strow .nm{color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .seg{display:flex;height:13px;border-radius:4px;overflow:hidden;background:#eef2f7}
+  .strow .tot{color:var(--muted);text-align:right}
+  /* queries */
+  .qcols{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  @media(max-width:620px){.qcols{grid-template-columns:1fr}}
+  .qh{font-size:11px;letter-spacing:.6px;color:var(--muted);font-weight:600;margin:0 0 8px}
+  .qrow{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--row,#eef2f7);font-size:13px}
+  .qrow:last-child{border-bottom:0}
+  .qrow .q{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .pill{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11.5px;font-weight:600;white-space:nowrap}
+  .pill.up{background:#e3f5ea;color:#15803d}
+  .pill.brk{background:#fde9d9;color:#c05621}
+  .pill.top{background:#e8eefb;color:#2b59c3}
   .note{color:#8595aa;font-size:12.5px;line-height:1.55;margin-top:24px;border-top:1px solid var(--line);padding-top:16px}
   .note b{color:var(--ink)}
+  .livewrap{display:none;margin-top:14px}
+  .livewrap.show{display:block}
+  .widget{min-height:380px;position:relative}
+  .widget iframe{width:100%!important;min-width:0!important;border:0!important}
+  .widget .loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#9aa6b6;font-size:13px}
 </style>
 </head>
 <body>
@@ -39,124 +65,192 @@
   <div class="top">
     <div>
       <h1>Search interest · <span class="b">Torque Optics</span></h1>
-      <p class="sub">Live Google Trends — relative U.S. search interest across the competitor set, past 12 months. 100 = peak interest for that term in the window. This is the free, no-key "share of attention" signal; it does not measure sentiment.</p>
+      <p class="sub">Relative U.S. search interest across the competitor set, past 12 months. 100 = peak interest for that term in the window. A "share of attention" signal — it does not measure sentiment.</p>
     </div>
     <div class="right">
-      <span class="badge"><span class="dot"></span> Live · Google Trends</span>
+      <span class="badge" id="statusBadge"><span class="dot"></span> Snapshot · 2026-06-26</span>
+      <div class="ctrls">
+        <button class="btn" id="liveBtn" onclick="toggleLive()">↻ Load live Google Trends</button>
+      </div>
       <a class="back" href="index.html">← Back to the scorecard</a>
     </div>
   </div>
 
   <div class="grid">
     <div class="card">
-      <h2>Heavyweights — interest over time <span>· Ray-Ban · Oakley · Maui Jim · Warby Parker · Costa Del Mar</span></h2>
-      <div class="widget" id="ts1"><div class="loading">Loading Google Trends…</div></div>
+      <h2>Heavyweights — interest over time <span>· past 12 months · U.S.</span></h2>
+      <div class="legend" id="legA"></div>
+      <div class="chartbox"><canvas id="chartA"></canvas></div>
     </div>
     <div class="card">
-      <h2>Challengers + you — interest over time <span>· Smith Optics · Goodr · Knockaround · Torque Optics</span></h2>
-      <div class="widget" id="ts2"><div class="loading">Loading Google Trends…</div></div>
+      <h2>Challengers + you — interest over time <span>· past 12 months · U.S.</span></h2>
+      <div class="legend" id="legB"></div>
+      <div class="chartbox"><canvas id="chartB"></canvas></div>
     </div>
     <div class="geo-row">
       <div class="card">
         <h2>Where each brand leads <span>· U.S. by state</span></h2>
-        <div class="widget" id="geo1"><div class="loading">Loading Google Trends…</div></div>
+        <p class="geonote" id="geoNote"></p>
+        <div class="statelist" id="stateList"></div>
       </div>
       <div class="card">
-        <h2>Rising searches <span>· "polarized sunglasses"</span></h2>
-        <div class="widget" id="rq1"><div class="loading">Loading Google Trends…</div></div>
+        <h2>Top &amp; rising searches <span>· "polarized sunglasses"</span></h2>
+        <div class="qcols">
+          <div>
+            <p class="qh">RISING</p>
+            <div id="risingList"></div>
+          </div>
+          <div>
+            <p class="qh">TOP</p>
+            <div id="topList"></div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 
-  <p class="note"><b>How to read this:</b> Google Trends is relative, not absolute — interest scaled 0–100 against the highest point in the window, not raw mention counts. It's the cleanest free proxy for share of voice / attention, and where Torque Optics starts from zero against established names. Widgets are interactive — hover, change ranges, click "Explore" for the full Trends view. If a panel is blank, wait a few seconds or reload (Google rate-limits rapid reloads).</p>
+  <!-- Live Google Trends embeds (loaded on demand) -->
+  <div class="livewrap" id="liveWrap">
+    <div class="grid">
+      <div class="card"><h2>Live · Heavyweights</h2><div class="widget" id="ts1"><div class="loading">Loading live Google Trends…</div></div></div>
+      <div class="card"><h2>Live · Challengers + you</h2><div class="widget" id="ts2"><div class="loading">Loading live Google Trends…</div></div></div>
+    </div>
+  </div>
+
+  <p class="note"><b>How to read this:</b> values are Google Trends' relative 0–100 scale — interest against the highest point in the window, not raw mention counts. The charts above are a <b>saved snapshot from 2026-06-26</b> so the page always shows data. Hit <b>Load live Google Trends</b> to pull the current interactive widgets straight from Google (these can be blank for a few seconds if Google rate-limits a rapid reload).</p>
 </div>
 
-<script src="https://ssl.gstatic.com/trends_nrtr/4448_RC01/embed_loader.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script>
-  /*
-    Google's current embed_loader.js ignores the target `element` and appends each
-    widget iframe to <body> instead of into the card you ask for — which left the
-    cards blank and the charts stacked at the bottom of the page. Fix: render the
-    widgets one at a time and move each freshly-created iframe into its card.
-  */
-  const T = "today 12-m", G = "US";
-  const item = k => ({keyword:k, geo:G, time:T});
+const DATA = {"heavyweights":{"dates":["2025-06-22","2025-06-29","2025-07-06","2025-07-13","2025-07-20","2025-07-27","2025-08-03","2025-08-10","2025-08-17","2025-08-24","2025-08-31","2025-09-07","2025-09-14","2025-09-21","2025-09-28","2025-10-05","2025-10-12","2025-10-19","2025-10-26","2025-11-02","2025-11-09","2025-11-16","2025-11-23","2025-11-30","2025-12-07","2025-12-14","2025-12-21","2025-12-28","2026-01-04","2026-01-11","2026-01-18","2026-01-25","2026-02-01","2026-02-08","2026-02-15","2026-02-22","2026-03-01","2026-03-08","2026-03-15","2026-03-22","2026-03-29","2026-04-05","2026-04-12","2026-04-19","2026-04-26","2026-05-03","2026-05-10","2026-05-17","2026-05-24","2026-05-31","2026-06-07","2026-06-14","2026-06-21"],"series":{"Ray-Ban":[4,4,4,6,7,9,5,4,4,3,4,3,7,5,4,4,4,4,4,6,6,6,11,10,9,9,11,10,8,7,7,7,8,10,11,10,9,9,11,18,47,58,66,47,32,32,50,58,35,31,30,17,15],"Oakley":[50,50,47,46,49,47,43,41,40,37,37,32,35,34,33,34,33,33,31,35,36,39,55,46,43,40,47,44,37,38,37,36,38,48,46,41,41,44,43,57,81,90,100,80,68,73,78,75,66,65,64,60,54],"Maui Jim":[7,7,7,6,7,6,6,6,5,5,5,4,4,4,4,4,4,3,3,4,3,3,5,4,4,4,4,4,3,3,3,3,3,4,3,4,5,5,5,7,11,12,12,11,9,9,13,13,11,11,12,10,9],"Warby Parker":[15,14,15,14,13,15,15,14,14,14,14,13,13,13,13,14,13,14,12,13,15,15,13,14,13,13,13,20,16,15,14,14,13,14,15,14,14,14,14,14,16,17,16,15,15,13,15,16,15,14,16,14,14],"Costa Del Mar":[2,2,2,2,1,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,3,4,4,3,3,3,3,3,2,2,3,2,2]}},"challengers":{"dates":["2025-06-22","2025-06-29","2025-07-06","2025-07-13","2025-07-20","2025-07-27","2025-08-03","2025-08-10","2025-08-17","2025-08-24","2025-08-31","2025-09-07","2025-09-14","2025-09-21","2025-09-28","2025-10-05","2025-10-12","2025-10-19","2025-10-26","2025-11-02","2025-11-09","2025-11-16","2025-11-23","2025-11-30","2025-12-07","2025-12-14","2025-12-21","2025-12-28","2026-01-04","2026-01-11","2026-01-18","2026-01-25","2026-02-01","2026-02-08","2026-02-15","2026-02-22","2026-03-01","2026-03-08","2026-03-15","2026-03-22","2026-03-29","2026-04-05","2026-04-12","2026-04-19","2026-04-26","2026-05-03","2026-05-10","2026-05-17","2026-05-24","2026-05-31","2026-06-07","2026-06-14","2026-06-21"],"series":{"Smith Optics":[4,4,4,5,5,4,4,4,4,4,4,4,3,3,4,4,4,3,4,5,5,5,7,6,5,6,5,6,5,5,5,5,6,7,6,5,5,6,5,5,5,6,7,6,6,5,7,6,7,5,6,4,4],"Goodr":[55,75,67,51,48,44,41,41,37,33,34,24,26,22,23,24,19,19,17,20,19,21,50,33,25,25,27,22,16,17,15,17,17,20,20,22,27,32,36,54,75,96,100,85,75,81,86,81,74,67,70,59,55],"Knockaround":[8,9,8,7,7,6,6,5,4,5,5,4,5,4,6,4,3,5,4,4,4,4,5,5,4,4,3,4,3,3,3,3,4,5,5,5,5,6,7,19,37,48,58,45,34,46,42,26,19,19,20,14,13],"Torque Optics":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,1,0,1,1,0,1,1,1,1,1,1,0,1,0,1,1,0,0,0]}},"geo":[{"state":"Alabama","leader":"Oakley","vals":{"Ray-Ban":20,"Oakley":65,"Maui Jim":15}},{"state":"Alaska","leader":"Oakley","vals":{"Ray-Ban":15,"Oakley":77,"Maui Jim":8}},{"state":"Arizona","leader":"Oakley","vals":{"Ray-Ban":22,"Oakley":70,"Maui Jim":8}},{"state":"Arkansas","leader":"Oakley","vals":{"Ray-Ban":19,"Oakley":70,"Maui Jim":11}},{"state":"California","leader":"Oakley","vals":{"Ray-Ban":19,"Oakley":75,"Maui Jim":6}},{"state":"Colorado","leader":"Oakley","vals":{"Ray-Ban":18,"Oakley":74,"Maui Jim":8}},{"state":"Connecticut","leader":"Oakley","vals":{"Ray-Ban":25,"Oakley":64,"Maui Jim":11}},{"state":"Delaware","leader":"Oakley","vals":{"Ray-Ban":27,"Oakley":63,"Maui Jim":10}},{"state":"District of Columbia","leader":"Oakley","vals":{"Ray-Ban":33,"Oakley":59,"Maui Jim":8}},{"state":"Florida","leader":"Oakley","vals":{"Ray-Ban":26,"Oakley":64,"Maui Jim":10}},{"state":"Georgia","leader":"Oakley","vals":{"Ray-Ban":24,"Oakley":69,"Maui Jim":7}},{"state":"Hawaii","leader":"Oakley","vals":{"Ray-Ban":12,"Oakley":62,"Maui Jim":26}},{"state":"Idaho","leader":"Oakley","vals":{"Ray-Ban":12,"Oakley":80,"Maui Jim":8}},{"state":"Illinois","leader":"Oakley","vals":{"Ray-Ban":22,"Oakley":70,"Maui Jim":8}},{"state":"Indiana","leader":"Oakley","vals":{"Ray-Ban":18,"Oakley":74,"Maui Jim":8}},{"state":"Iowa","leader":"Oakley","vals":{"Ray-Ban":18,"Oakley":72,"Maui Jim":10}},{"state":"Kansas","leader":"Oakley","vals":{"Ray-Ban":14,"Oakley":81,"Maui Jim":5}},{"state":"Kentucky","leader":"Oakley","vals":{"Ray-Ban":15,"Oakley":78,"Maui Jim":7}},{"state":"Louisiana","leader":"Oakley","vals":{"Ray-Ban":23,"Oakley":65,"Maui Jim":12}},{"state":"Maine","leader":"Oakley","vals":{"Ray-Ban":16,"Oakley":70,"Maui Jim":14}},{"state":"Maryland","leader":"Oakley","vals":{"Ray-Ban":27,"Oakley":64,"Maui Jim":9}},{"state":"Massachusetts","leader":"Oakley","vals":{"Ray-Ban":27,"Oakley":63,"Maui Jim":10}},{"state":"Michigan","leader":"Oakley","vals":{"Ray-Ban":19,"Oakley":73,"Maui Jim":8}},{"state":"Minnesota","leader":"Oakley","vals":{"Ray-Ban":20,"Oakley":69,"Maui Jim":11}},{"state":"Mississippi","leader":"Oakley","vals":{"Ray-Ban":22,"Oakley":63,"Maui Jim":15}},{"state":"Missouri","leader":"Oakley","vals":{"Ray-Ban":20,"Oakley":71,"Maui Jim":9}},{"state":"Montana","leader":"Oakley","vals":{"Ray-Ban":14,"Oakley":73,"Maui Jim":13}},{"state":"Nebraska","leader":"Oakley","vals":{"Ray-Ban":21,"Oakley":69,"Maui Jim":10}},{"state":"Nevada","leader":"Oakley","vals":{"Ray-Ban":19,"Oakley":74,"Maui Jim":7}},{"state":"New Hampshire","leader":"Oakley","vals":{"Ray-Ban":18,"Oakley":68,"Maui Jim":14}},{"state":"New Jersey","leader":"Oakley","vals":{"Ray-Ban":26,"Oakley":66,"Maui Jim":8}},{"state":"New Mexico","leader":"Oakley","vals":{"Ray-Ban":16,"Oakley":77,"Maui Jim":7}},{"state":"New York","leader":"Oakley","vals":{"Ray-Ban":28,"Oakley":63,"Maui Jim":9}},{"state":"North Carolina","leader":"Oakley","vals":{"Ray-Ban":21,"Oakley":70,"Maui Jim":9}},{"state":"North Dakota","leader":"Oakley","vals":{"Ray-Ban":15,"Oakley":72,"Maui Jim":13}},{"state":"Ohio","leader":"Oakley","vals":{"Ray-Ban":11,"Oakley":86,"Maui Jim":3}},{"state":"Oklahoma","leader":"Oakley","vals":{"Ray-Ban":18,"Oakley":74,"Maui Jim":8}},{"state":"Oregon","leader":"Oakley","vals":{"Ray-Ban":20,"Oakley":69,"Maui Jim":11}},{"state":"Pennsylvania","leader":"Oakley","vals":{"Ray-Ban":24,"Oakley":69,"Maui Jim":7}},{"state":"Rhode Island","leader":"Oakley","vals":{"Ray-Ban":24,"Oakley":64,"Maui Jim":12}},{"state":"South Carolina","leader":"Oakley","vals":{"Ray-Ban":18,"Oakley":70,"Maui Jim":12}},{"state":"South Dakota","leader":"Oakley","vals":{"Ray-Ban":15,"Oakley":76,"Maui Jim":9}},{"state":"Tennessee","leader":"Oakley","vals":{"Ray-Ban":20,"Oakley":71,"Maui Jim":9}},{"state":"Texas","leader":"Oakley","vals":{"Ray-Ban":22,"Oakley":71,"Maui Jim":7}},{"state":"Utah","leader":"Oakley","vals":{"Ray-Ban":13,"Oakley":81,"Maui Jim":6}},{"state":"Vermont","leader":"Oakley","vals":{"Ray-Ban":17,"Oakley":72,"Maui Jim":11}},{"state":"Virginia","leader":"Oakley","vals":{"Ray-Ban":24,"Oakley":68,"Maui Jim":8}},{"state":"Washington","leader":"Oakley","vals":{"Ray-Ban":23,"Oakley":69,"Maui Jim":8}},{"state":"West Virginia","leader":"Oakley","vals":{"Ray-Ban":18,"Oakley":75,"Maui Jim":7}},{"state":"Wisconsin","leader":"Oakley","vals":{"Ray-Ban":19,"Oakley":72,"Maui Jim":9}},{"state":"Wyoming","leader":"Oakley","vals":{"Ray-Ban":40,"Oakley":54,"Maui Jim":6}}],"rising":[{"query":"kids polarized sunglasses","value":450},{"query":"polarized sunglasses for women","value":80},{"query":"polarized aviator sunglasses","value":70},{"query":"wayfarer polarized sunglasses","value":70},{"query":"polarized sunglasses for men","value":60}],"top":[{"query":"best polarized sunglasses","value":100},{"query":"polarized sunglasses for women","value":93},{"query":"polarized sunglasses for men","value":92},{"query":"oakley polarized sunglasses","value":91},{"query":"kids polarized sunglasses","value":89},{"query":"oakley sunglasses","value":86},{"query":"oakley","value":84},{"query":"polarized aviator sunglasses","value":80},{"query":"polarized fishing sunglasses","value":62},{"query":"mens sunglasses polarized","value":61}],"pulled":"2026-06-26"};
 
-  const WIDGETS = [
-    {el:"ts1", type:"TIMESERIES",
-      payload:{comparisonItem:["Ray-Ban","Oakley","Maui Jim","Warby Parker","Costa Del Mar"].map(item),category:0,property:""},
-      opts:{exploreQuery:"date=today 12-m&geo=US&q=Ray-Ban,Oakley,Maui Jim,Warby Parker,Costa Del Mar"}},
-    {el:"ts2", type:"TIMESERIES",
-      payload:{comparisonItem:["Smith Optics","Goodr","Knockaround","Torque Optics"].map(item),category:0,property:""},
-      opts:{exploreQuery:"date=today 12-m&geo=US&q=Smith Optics,Goodr,Knockaround,Torque Optics"}},
-    {el:"geo1", type:"GEO_MAP",
-      payload:{comparisonItem:["Ray-Ban","Oakley","Maui Jim"].map(item),category:0,property:""},
-      opts:{exploreQuery:"date=today 12-m&geo=US&q=Ray-Ban,Oakley,Maui Jim"}},
-    {el:"rq1", type:"RELATED_QUERIES",
-      payload:{comparisonItem:[item("polarized sunglasses")],category:0,property:""},
-      opts:{exploreQuery:"date=today 12-m&geo=US&q=polarized sunglasses"}},
-  ];
+const COLORS = {
+  "Ray-Ban":"#4d8bf5","Oakley":"#e8612c","Maui Jim":"#f2b705","Warby Parker":"#1f9d57","Costa Del Mar":"#8b5cf6",
+  "Smith Optics":"#4d8bf5","Goodr":"#e8612c","Knockaround":"#f2b705","Torque Optics":"#111827"
+};
 
-  const GUEST = "https://trends.google.com:443/trends/embed/";
-  const ORDER = WIDGETS.map(w => w.el);
+function monthLabels(dates){
+  const mo=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  let last="";
+  return dates.map(ds=>{const dt=new Date(ds+"T00:00:00");const m=mo[dt.getMonth()];if(m!==last){last=m;return m;}return "";});
+}
 
-  // First card (in render order) that doesn't yet hold a chart.
-  function nextEmptyCard(){
-    for(const id of ORDER){
-      const c = document.getElementById(id);
-      if(c && !c.querySelector("iframe")) return c;
+function legend(elId, series){
+  const el=document.getElementById(elId);
+  el.innerHTML=Object.keys(series).map(k=>`<span><i style="background:${COLORS[k]}"></i>${k}</span>`).join("");
+}
+
+function lineChart(canvasId, block){
+  const labels=monthLabels(block.dates);
+  const ds=Object.keys(block.series).map(k=>({
+    label:k, data:block.series[k], borderColor:COLORS[k],
+    backgroundColor:COLORS[k], borderWidth:(k==="Torque Optics"?2.5:2),
+    pointRadius:0, pointHoverRadius:4, tension:.35,
+    borderDash:(k==="Torque Optics"?[5,3]:[])
+  }));
+  new Chart(document.getElementById(canvasId),{
+    type:"line",
+    data:{labels:block.dates, datasets:ds},
+    options:{
+      responsive:true, maintainAspectRatio:false, interaction:{mode:"index",intersect:false},
+      plugins:{legend:{display:false}, tooltip:{callbacks:{title:items=>{
+        const dt=new Date(items[0].label+"T00:00:00");
+        return dt.toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"});
+      }}}},
+      scales:{
+        y:{beginAtZero:true, max:100, ticks:{stepSize:25,color:"#9aa6b6",font:{size:11}}, grid:{color:"#eef2f7"}},
+        x:{ticks:{color:"#9aa6b6",font:{size:11},autoSkip:false,maxRotation:0,
+            callback:function(v,i){return labels[i]||"";}}, grid:{display:false}}
+      }
     }
-    return null;
+  });
+}
+
+// ---- Geo ----
+function renderGeo(){
+  const brands=["Ray-Ban","Oakley","Maui Jim"];
+  const counts={};DATA.geo.forEach(g=>counts[g.leader]=(counts[g.leader]||0)+1);
+  const leadTxt=Object.entries(counts).sort((a,b)=>b[1]-a[1])
+    .map(([b,n])=>`<b style="color:${COLORS[b]}">${b}</b> leads ${n}`).join(" · ");
+  document.getElementById("geoNote").innerHTML=leadTxt+". Bars show each state's relative split across the three.";
+  const rows=[...DATA.geo].sort((a,b)=>b.vals["Oakley"]-a.vals["Oakley"]);
+  document.getElementById("stateList").innerHTML=rows.map(g=>{
+    const tot=brands.reduce((s,b)=>s+g.vals[b],0)||1;
+    const segs=brands.map(b=>`<span style="width:${(g.vals[b]/tot*100).toFixed(1)}%;background:${COLORS[b]}"></span>`).join("");
+    return `<div class="strow"><span class="nm">${g.state}</span><span class="seg">${segs}</span><span class="tot">${g.vals["Oakley"]}</span></div>`;
+  }).join("");
+}
+
+// ---- Queries ----
+function pillFor(v){
+  if(v>=5000) return '<span class="pill brk">Breakout</span>';
+  return `<span class="pill up">+${v}%</span>`;
+}
+function renderQueries(){
+  document.getElementById("risingList").innerHTML=(DATA.rising||[]).map(r=>
+    `<div class="qrow"><span class="q">${r.query}</span>${pillFor(r.value)}</div>`).join("")||'<div class="qrow"><span class="q" style="color:#9aa6b6">No rising data</span></div>';
+  document.getElementById("topList").innerHTML=(DATA.top||[]).map(r=>
+    `<div class="qrow"><span class="q">${r.query}</span><span class="pill top">${r.value}</span></div>`).join("");
+}
+
+// ---- Live embeds (on demand) ----
+let liveLoaded=false, liveOn=false;
+function loadEmbedScript(cb){
+  if(window.trends && window.trends.embed) return cb();
+  const s=document.createElement("script");
+  s.src="https://ssl.gstatic.com/trends_nrtr/4448_RC01/embed_loader.js";
+  s.onload=()=>{const w=()=>{(window.trends&&window.trends.embed)?cb():setTimeout(w,200);};w();};
+  document.head.appendChild(s);
+}
+const LIVE_ORDER=["ts1","ts2"];
+function nextEmptyCard(){for(const id of LIVE_ORDER){const c=document.getElementById(id);if(c&&!c.querySelector("iframe"))return c;}return null;}
+function relocateStrays(){
+  document.querySelectorAll("iframe").forEach(f=>{
+    if(f.closest(".widget"))return;
+    const c=nextEmptyCard();if(!c)return;
+    const l=c.querySelector(".loading");if(l)l.remove();c.appendChild(f);
+  });
+}
+function renderLive(){
+  const obs=new MutationObserver(relocateStrays);
+  obs.observe(document.body,{childList:true,subtree:true});
+  const item=k=>({keyword:k,geo:"US",time:"today 12-m"});
+  const G="https://trends.google.com:443/trends/embed/";
+  trends.embed.renderExploreWidget("TIMESERIES",
+    {comparisonItem:["Ray-Ban","Oakley","Maui Jim","Warby Parker","Costa Del Mar"].map(item),category:0,property:""},
+    {exploreQuery:"date=today 12-m&geo=US&q=Ray-Ban,Oakley,Maui Jim,Warby Parker,Costa Del Mar",guestPath:G,element:document.getElementById("ts1")});
+  setTimeout(()=>{
+    trends.embed.renderExploreWidget("TIMESERIES",
+      {comparisonItem:["Smith Optics","Goodr","Knockaround","Torque Optics"].map(item),category:0,property:""},
+      {exploreQuery:"date=today 12-m&geo=US&q=Smith Optics,Goodr,Knockaround,Torque Optics",guestPath:G,element:document.getElementById("ts2")});
+  },400);
+  setInterval(relocateStrays,400);
+  setTimeout(()=>obs.disconnect(),20000);
+}
+function toggleLive(){
+  const wrap=document.getElementById("liveWrap"), btn=document.getElementById("liveBtn");
+  liveOn=!liveOn;
+  if(liveOn){
+    wrap.classList.add("show");
+    btn.textContent="Hide live Google Trends";
+    if(!liveLoaded){
+      liveLoaded=true; btn.classList.add("busy"); btn.textContent="Loading live…";
+      loadEmbedScript(()=>{renderLive(); btn.classList.remove("busy"); btn.textContent="Hide live Google Trends";});
+    }
+    wrap.scrollIntoView({behavior:"smooth",block:"start"});
+  } else {
+    wrap.classList.remove("show");
+    btn.textContent="↻ Load live Google Trends";
   }
+}
 
-  // Move any iframe the loader dumped on <body> into the next empty card.
-  // We render sequentially, so the Nth stray belongs to the Nth card.
-  function relocateStrays(){
-    document.querySelectorAll("iframe").forEach(f => {
-      if(f.closest(".widget")) return;       // already placed
-      const card = nextEmptyCard();
-      if(!card) return;
-      const loader = card.querySelector(".loading");
-      if(loader) loader.remove();
-      card.appendChild(f);                    // CSS forces width:100%
-    });
-  }
-
-  // Safety net: catch late / out-of-order iframes even after a render resolves.
-  const observer = new MutationObserver(relocateStrays);
-
-  function renderOne(w){
-    return new Promise(resolve => {
-      const card = document.getElementById(w.el);
-      try {
-        trends.embed.renderExploreWidget(
-          w.type, w.payload,
-          Object.assign({guestPath:GUEST, element:card}, w.opts)
-        );
-      } catch(e){ /* polling below will simply time out */ }
-
-      let tries = 0;
-      const iv = setInterval(() => {
-        relocateStrays();
-        if(card.querySelector("iframe")){
-          const loader = card.querySelector(".loading");
-          if(loader) loader.remove();
-          clearInterval(iv);
-          return resolve();
-        }
-        if(++tries > 200){ clearInterval(iv); resolve(); } // ~30s cap per widget
-      }, 150);
-    });
-  }
-
-  async function run(){
-    if(!window.trends || !trends.embed){ return setTimeout(run, 300); }
-    observer.observe(document.body, {childList:true, subtree:true});
-    for(const w of WIDGETS){ await renderOne(w); }
-    // Keep watching briefly for any stragglers, then stop.
-    setTimeout(() => observer.disconnect(), 15000);
-  }
-  run();
+// init
+legend("legA", DATA.heavyweights.series);
+legend("legB", DATA.challengers.series);
+lineChart("chartA", DATA.heavyweights);
+lineChart("chartB", DATA.challengers);
+renderGeo();
+renderQueries();
 </script>
 </body>
 </html>
