@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Performance · Torque Optics</title>
+<style>
+  :root{
+    --bg:#f4f6f8; --panel:#ffffff; --ink:#0f1b2d; --muted:#6b7a90;
+    --sidebar:#0e1726; --sidebar-muted:#7f8ba0; --accent:#3b7bf6;
+    --line:#e6eaf0; --row:#eef2f7; --good:#1f9d57; --good-bg:#e3f5ea;
+    --warn-bg:#fdf3da; --warn:#b8861f; --neg:#c0392b;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+  .app{display:flex;min-height:100vh}
+  .side{width:248px;background:var(--sidebar);color:#fff;flex-shrink:0;padding:22px 16px}
+  .logo{display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:.5px;font-size:22px;margin:4px 6px 22px}
+  .logo svg{width:34px;height:34px}
+  .launch{background:#16223a;border-radius:10px;padding:12px 14px;margin-bottom:24px}
+  .launch .dot{width:9px;height:9px;border-radius:50%;background:#2ec27e;display:inline-block;margin-right:8px}
+  .launch b{font-size:14px}
+  .launch span{display:block;color:var(--sidebar-muted);font-size:12px;margin-top:3px;padding-left:17px}
+  .navgroup{color:var(--sidebar-muted);font-size:11px;letter-spacing:1px;margin:18px 8px 8px}
+  .nav a{display:flex;align-items:center;gap:11px;color:#c7d0de;text-decoration:none;padding:10px 12px;border-radius:9px;font-size:14.5px;margin-bottom:2px;cursor:pointer}
+  .nav a.active{background:var(--accent);color:#fff;font-weight:600}
+  .nav a:hover:not(.active){background:#16223a}
+  .ico{width:17px;height:17px;display:inline-block;opacity:.85}
+  .main{flex:1;padding:26px 34px;min-width:0}
+  .head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:14px}
+  .head h1{font-size:24px;margin:0 0 6px}
+  .head h1 .b{color:var(--accent)}
+  .head p{margin:0;color:var(--muted);font-size:14px;max-width:560px;line-height:1.5}
+  .badge{display:inline-flex;align-items:center;gap:7px;background:var(--warn-bg);color:var(--warn);border:1px solid #f0dca0;border-radius:20px;padding:7px 13px;font-size:12.5px;font-weight:600;white-space:nowrap}
+  .banner{background:#eef0ff;border:1px solid #c9c8f0;border-left:4px solid #6b68d6;border-radius:11px;padding:12px 16px;margin-bottom:18px;font-size:13px;color:#46456f;line-height:1.5}
+  .banner b{color:#2a2960}
+  .tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:20px;border-bottom:1px solid var(--line)}
+  .tabs button{border:0;background:none;padding:10px 14px;font-size:13.5px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px}
+  .tabs button.on{color:var(--accent);border-bottom-color:var(--accent);font-weight:600}
+  .view{display:none} .view.on{display:block}
+  /* ai box */
+  .ai{display:flex;gap:10px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:18px;box-shadow:0 1px 3px rgba(16,27,45,.05)}
+  .ai .rb{width:30px;height:30px;border-radius:8px;background:#111827;color:#fff;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+  .ai input{flex:1;border:0;font-size:14px;outline:none;background:none;color:var(--ink)}
+  .ai button{border:1px solid var(--line);background:#fff;border-radius:8px;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer}
+  .aians{background:#f4f6fb;border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:18px;font-size:13.5px;color:var(--ink);line-height:1.5;display:none}
+  .aians.show{display:block}
+  /* tiles */
+  .tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px}
+  @media(max-width:980px){.tiles{grid-template-columns:repeat(2,1fr)}}
+  .tile{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;box-shadow:0 1px 3px rgba(16,27,45,.05)}
+  .tile .lab{font-size:11px;letter-spacing:.4px;color:var(--muted);font-weight:600;text-transform:uppercase}
+  .tile .val{font-size:22px;font-weight:700;margin-top:5px}
+  .tile .sub{font-size:12px;margin-top:3px;color:var(--muted)}
+  .up{color:var(--good)} .down{color:var(--neg)}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 18px;box-shadow:0 1px 3px rgba(16,27,45,.05);margin-bottom:18px}
+  .card h3{font-size:14px;margin:0 0 12px}
+  .card h3 .mut{color:var(--muted);font-weight:500;font-size:12.5px}
+  .chartbox{position:relative;height:280px}
+  .cols2{display:grid;grid-template-columns:1.6fr 1fr;gap:18px}
+  @media(max-width:900px){.cols2{grid-template-columns:1fr}}
+  table{width:100%;border-collapse:collapse}
+  thead th{text-align:left;font-size:11px;letter-spacing:.5px;color:var(--muted);font-weight:600;padding:0 10px 10px;border-bottom:1px solid var(--line)}
+  th.r,td.r{text-align:right}
+  tbody td{padding:11px 10px;font-size:13.5px;border-bottom:1px solid var(--row)}
+  tbody tr:last-child td{border-bottom:0}
+  .dot{width:9px;height:9px;border-radius:50%;display:inline-block;margin-right:7px;vertical-align:middle}
+  .tag{display:inline-block;background:var(--row);border-radius:6px;padding:2px 8px;font-size:11.5px;color:var(--muted)}
+  .sel{border:1px solid var(--line);background:#fff;border-radius:8px;padding:7px 11px;font-size:13px;color:var(--ink)}
+  /* pnl */
+  .pnl-row{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;padding:9px 0;border-bottom:1px solid var(--row);font-size:14px}
+  .pnl-row .amt{font-variant-numeric:tabular-nums;font-weight:600}
+  .pnl-row.sub{font-weight:700;border-top:1px solid var(--line)}
+  .pnl-row.net{font-weight:800;font-size:16px;background:var(--good-bg);margin:6px -10px 0;padding:12px 12px;border-radius:8px;border:0}
+  .pnl-row .nt{color:var(--muted);font-weight:400;font-size:12px;margin-left:8px}
+  .neg{color:var(--neg)}
+  /* cohort */
+  .coh{border-collapse:separate;border-spacing:4px}
+  .coh td{padding:8px 6px;text-align:center;font-size:12.5px;border-radius:6px;color:#0f1b2d;min-width:54px}
+  .coh td.h{background:none;color:var(--muted);font-weight:600;font-size:11px;text-align:left}
+  .src{text-align:center;color:#9aa6b6;font-size:12.5px;margin-top:22px}
+  .swatch{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:var(--muted);margin-right:14px}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="side">
+    <div class="logo">
+      <svg viewBox="0 0 64 32" fill="none"><circle cx="18" cy="16" r="11" stroke="#fff" stroke-width="3"/><circle cx="46" cy="16" r="11" stroke="#fff" stroke-width="3"/><path d="M29 16h6" stroke="#fff" stroke-width="3"/></svg>
+      TORQUE
+    </div>
+    <div class="launch"><span style="padding-left:0"><span class="dot"></span><b>Fulcrum launch</b></span><span>0 mentions tracked</span></div>
+    <div class="navgroup">LISTENING</div>
+    <nav class="nav">
+      <a href="index.html"><span class="ico">▦</span> Overview</a>
+      <a href="index.html"><span class="ico">💬</span> Conversation stream</a>
+      <a href="index.html"><span class="ico">🏆</span> Competitor scorecard</a>
+      <a href="search-interest.html"><span class="ico">📈</span> Search interest</a>
+      <a href="index.html"><span class="ico">🌐</span> Sources</a>
+    </nav>
+    <div class="navgroup">AUDIENCE</div>
+    <nav class="nav">
+      <a href="index.html"><span class="ico">👥</span> Influencers</a>
+      <a href="socials.html"><span class="ico">📱</span> Socials</a>
+    </nav>
+    <div class="navgroup">PERFORMANCE</div>
+    <nav class="nav">
+      <a class="active"><span class="ico">💰</span> Profit &amp; ads</a>
+    </nav>
+    <div class="navgroup">WORKSPACE</div>
+    <nav class="nav">
+      <a href="index.html"><span class="ico">🛰️</span> Tracking setup</a>
+      <a href="index.html"><span class="ico">⬇</span> Reports &amp; export</a>
+      <a href="index.html"><span class="ico">⚙</span> Settings</a>
+    </nav>
+  </aside>
+  <main class="main">
+    <div class="head">
+      <div>
+        <h1>Performance · <span class="b">Torque Optics</span></h1>
+        <p>Profit, ad efficiency, and attribution in one place — a Triple&nbsp;Whale / Polar-style command center.</p>
+      </div>
+      <span class="badge">● Sample data · connect sources for live</span>
+    </div>
+    <div class="banner">This recreates the Triple&nbsp;Whale / Polar <b>dashboards and metrics</b> with <b>sample data</b>. Live numbers need connectors — Shopify, Meta, Google &amp; TikTok Ads, Klaviyo — plus a tracking pixel for attribution. Layout and math are real; the inputs are placeholders.</div>
+
+    <div class="tabs" id="tabs"></div>
+
+    <!-- SUMMARY -->
+    <section class="view on" id="v-summary">
+      <div class="ai">
+        <div class="rb">✦</div>
+        <input id="aiq" placeholder="Ask anything — e.g. 'what's my blended ROAS and net margin?'" onkeydown="if(event.key==='Enter')ask()">
+        <button onclick="ask()">Ask</button>
+      </div>
+      <div class="aians" id="aians"></div>
+      <div class="tiles" id="kpis"></div>
+      <div class="cols2">
+        <div class="card"><h3>Revenue vs. ad spend <span class="mut">· last 30 days</span></h3><div class="chartbox"><canvas id="trendChart"></canvas></div></div>
+        <div class="card"><h3>Spend by channel</h3><div class="chartbox"><canvas id="spendChart"></canvas></div></div>
+      </div>
+      <div class="card">
+        <h3>New vs. returning</h3>
+        <div class="tiles" style="margin-bottom:0">
+          <div class="tile"><div class="lab">New customer ROAS</div><div class="val" id="newRoas"></div><div class="sub">harder to make profitable</div></div>
+          <div class="tile"><div class="lab">Returning ROAS</div><div class="val" id="retRoas"></div><div class="sub">your profit engine</div></div>
+          <div class="tile"><div class="lab">New customers</div><div class="val" id="newPct"></div><div class="sub">of orders this period</div></div>
+          <div class="tile"><div class="lab">Contribution margin</div><div class="val" id="cm"></div><div class="sub">after COGS, ship, fees</div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CHANNELS -->
+    <section class="view" id="v-channels">
+      <div class="card">
+        <h3>Channel performance <span class="mut">· spend, revenue, ROAS, CAC, MER</span></h3>
+        <table><thead><tr><th>Channel</th><th class="r">Spend</th><th class="r">Revenue</th><th class="r">ROAS</th><th class="r">Orders</th><th class="r">CAC</th><th class="r">% of spend</th></tr></thead>
+        <tbody id="chanRows"></tbody></table>
+      </div>
+      <div class="cols2">
+        <div class="card"><h3>ROAS by channel</h3><div class="chartbox"><canvas id="roasChart"></canvas></div></div>
+        <div class="card"><h3>Revenue mix</h3><div class="chartbox"><canvas id="revmixChart"></canvas></div></div>
+      </div>
+    </section>
+
+    <!-- ATTRIBUTION -->
+    <section class="view" id="v-attr">
+      <div class="card">
+        <h3 style="display:flex;align-items:center;gap:12px">Attributed revenue by channel
+          <select class="sel" id="modelSel" onchange="renderAttr()" style="margin-left:auto"></select></h3>
+        <p style="margin:-4px 0 14px;color:var(--muted);font-size:12.5px">Switch the attribution model to see how credit shifts across touchpoints — the way Triple&nbsp;Whale's Total Impact and Polar's multi-touch models work.</p>
+        <div class="chartbox"><canvas id="attrChart"></canvas></div>
+      </div>
+      <div class="card">
+        <h3>Why this differs from Meta's reported numbers</h3>
+        <p style="color:var(--muted);font-size:13.5px;line-height:1.6;margin:0">Each ad platform claims credit for the same sale, so summing their dashboards overcounts revenue. A blended model attributes each order once across the real customer journey. <b>Last click</b> rewards the final touch (often email/branded search); <b>first click</b> rewards discovery (often Meta/TikTok); <b>linear</b> and <b>time decay</b> spread credit. The gap between these is exactly the visibility a pixel-based tool buys you.</p>
+      </div>
+    </section>
+
+    <!-- CREATIVES -->
+    <section class="view" id="v-creative">
+      <div class="card">
+        <h3>Creative Cockpit <span class="mut">· top ads by attributed ROAS</span></h3>
+        <table><thead><tr><th>Creative</th><th>Platform</th><th>Angle / hook</th><th class="r">Spend</th><th class="r">ROAS</th><th class="r">CTR</th><th class="r">CPA</th></tr></thead>
+        <tbody id="creativeRows"></tbody></table>
+      </div>
+      <div class="card"><h3>Spend vs. ROAS by creative</h3><div class="chartbox"><canvas id="creativeChart"></canvas></div></div>
+    </section>
+
+    <!-- PROFIT -->
+    <section class="view" id="v-pnl">
+      <div class="cols2">
+        <div class="card">
+          <h3>Profit &amp; loss <span class="mut">· this period</span></h3>
+          <div id="pnlRows"></div>
+        </div>
+        <div>
+          <div class="tile" style="margin-bottom:14px"><div class="lab">Net profit</div><div class="val" id="np2"></div><div class="sub" id="nm2"></div></div>
+          <div class="tile" style="margin-bottom:14px"><div class="lab">Contribution margin</div><div class="val">53.8%</div><div class="sub">$91.4k after variable costs</div></div>
+          <div class="tile" style="margin-bottom:14px"><div class="lab">Gross margin</div><div class="val">65%</div><div class="sub">after COGS</div></div>
+          <div class="tile"><div class="lab">Break-even ROAS</div><div class="val">1.8x</div><div class="sub">cover COGS + variable</div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- RETENTION -->
+    <section class="view" id="v-ret">
+      <div class="tiles">
+        <div class="tile"><div class="lab">60-day LTV</div><div class="val" id="ltv60"></div><div class="sub">avg per new customer</div></div>
+        <div class="tile"><div class="lab">Repeat rate</div><div class="val" id="rep"></div><div class="sub">buy a 2nd time</div></div>
+        <div class="tile"><div class="lab">Avg orders / customer</div><div class="val" id="aoc"></div><div class="sub">lifetime to date</div></div>
+        <div class="tile"><div class="lab">CAC payback</div><div class="val" id="pay"></div><div class="sub">time to recover CAC</div></div>
+      </div>
+      <div class="cols2">
+        <div class="card"><h3>Cumulative LTV <span class="mut">· per customer, by month</span></h3><div class="chartbox"><canvas id="ltvChart"></canvas></div></div>
+        <div class="card">
+          <h3>Cohort retention <span class="mut">· % still ordering, by acquisition month</span></h3>
+          <div style="overflow-x:auto"><table class="coh" id="cohTable"></table></div>
+        </div>
+      </div>
+    </section>
+
+    <p class="src">Sample data for layout. Live metrics require connecting Shopify, Meta / Google / TikTok Ads, and Klaviyo, plus a first-party pixel for attribution.</p>
+  </main>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+const D = {"dates":["D1","D2","D3","D4","D5","D6","D7","D8","D9","D10","D11","D12","D13","D14","D15","D16","D17","D18","D19","D20","D21","D22","D23","D24","D25","D26","D27","D28","D29","D30"],"rev":[6050,6286,6499,6672,6788,6840,6825,6750,6627,6473,6310,6160,6043,5976,5971,6033,6159,6339,6557,6794,7027,7236,7401,7508,7550,7526,7442,7313,7157,6994],"spend":[1750,1822,1886,1936,1966,1974,1959,1923,1870,1807,1740,1678,1627,1594,1582,1594,1627,1680,1746,1818,1889,1951,1999,2026,2030,2012,1973,1918,1854,1787],"summary":{"revenue":181400,"adSpend":52600,"blendedRoas":3.45,"mer":3.45,"netProfit":32200,"netMargin":17.8,"cac":34,"aov":78,"orders":2326,"cvr":2.8,"newCustPct":62,"contributionMargin":41,"newRoas":2.3,"returningRoas":9.1,"grossMargin":65,"refundRate":3.1},"channels":[{"name":"Meta Ads","spend":31200,"revenue":108900,"orders":1180,"color":"#4267B2"},{"name":"Google Ads","spend":12100,"revenue":45980,"orders":520,"color":"#EA4335"},{"name":"TikTok Ads","spend":7050,"revenue":19200,"orders":268,"color":"#111827"},{"name":"Email / Klaviyo","spend":1480,"revenue":38400,"orders":280,"color":"#7c3aed"},{"name":"Organic / Direct","spend":0,"revenue":24100,"orders":78,"color":"#1f9d57"}],"attribution":{"models":["Last click","First click","Linear","Time decay"],"channels":["Meta Ads","Google Ads","TikTok Ads","Email","Direct"],"byModel":{"Last click":[62000,41000,12000,44000,16400],"First click":[78000,33000,21000,22000,21400],"Linear":[70000,37000,16500,33000,19000],"Time decay":[66000,39000,14000,38500,18000]}},"creatives":[{"name":"Beach screen test","platform":"Meta","spend":9400,"roas":4.6,"ctr":2.8,"cpa":29,"hook":"POV / problem-led","c":"#E1306C"},{"name":"Glare side-by-side","platform":"Meta","spend":7100,"roas":3.9,"ctr":2.1,"cpa":33,"hook":"Demo / comparison","c":"#4267B2"},{"name":"UGC unboxing","platform":"TikTok","spend":4300,"roas":3.1,"ctr":3.4,"cpa":38,"hook":"UGC / unboxing","c":"#111827"},{"name":"Founder story","platform":"Meta","spend":3800,"roas":2.7,"ctr":1.6,"cpa":44,"hook":"Founder / mission","c":"#1877F2"},{"name":"Search: polarized","platform":"Google","spend":6200,"roas":3.8,"ctr":5.2,"cpa":31,"hook":"Intent / search","c":"#EA4335"},{"name":"Read your phone","platform":"TikTok","spend":2600,"roas":2.4,"ctr":2.9,"cpa":47,"hook":"Benefit / hook","c":"#111827"}],"pnl":[{"label":"Gross revenue","val":181400,"kind":"pos","note":"Shopify, gross"},{"label":"Discounts & refunds","val":-11600,"kind":"neg","note":"6.4% of revenue"},{"label":"Net revenue","val":169800,"kind":"sub","note":""},{"label":"COGS","val":-59400,"kind":"neg","note":"35% of net"},{"label":"Shipping & fulfillment","val":-13900,"kind":"neg","note":""},{"label":"Payment & transaction fees","val":-5100,"kind":"neg","note":"~2.9% + 30\u00a2"},{"label":"Contribution profit","val":91400,"kind":"sub","note":"53.8% margin"},{"label":"Ad spend","val":-52600,"kind":"neg","note":"Meta + Google + TikTok"},{"label":"Apps, tools & overhead","val":-6600,"kind":"neg","note":""},{"label":"Net profit","val":32200,"kind":"net","note":"17.8% net margin"}],"cohorts":{"months":["Jan","Feb","Mar","Apr","May","Jun"],"retention":[[100,28,19,14,11,9],[100,31,21,15,12,0],[100,27,18,13,0,0],[100,33,22,0,0,0],[100,29,0,0,0,0],[100,0,0,0,0,0]],"newCustByMonth":[640,710,580,690,560,720]},"ltv":{"labels":["M0","M1","M2","M3","M4","M5","M6","M7","M8","M9","M10","M11"],"cum":[78,96,110,121,131,139,147,154,160,166,171,176],"repeatRate":34,"avgOrders":1.9,"payback":"~1.2 months"}};
+const $=id=>document.getElementById(id);
+const usd=n=>"$"+Math.round(n).toLocaleString("en-US");
+const usdk=n=>"$"+(n/1000).toFixed(n>=100000?0:1)+"k";
+
+/* tabs */
+const TABS=[["summary","Summary"],["channels","Channels"],["attr","Attribution"],["creative","Creatives"],["pnl","Profit & P&L"],["ret","Retention & LTV"]];
+$("tabs").innerHTML=TABS.map((t,i)=>`<button class="${i===0?'on':''}" data-v="${t[0]}" onclick="tab('${t[0]}',this)">${t[1]}</button>`).join("");
+let built={summary:true};
+function tab(v,btn){
+  document.querySelectorAll(".tabs button").forEach(b=>b.classList.remove("on"));btn.classList.add("on");
+  document.querySelectorAll(".view").forEach(s=>s.classList.remove("on"));$("v-"+v).classList.add("on");
+  if(!built[v]){built[v]=true;build(v);}
+}
+
+/* AI box (demo) */
+function ask(){
+  const s=D.summary;const q=($("aiq").value||"").toLowerCase();
+  let a=`Blended ROAS is <b>${s.blendedRoas}x</b> on ${usdk(s.adSpend)} spend → ${usdk(s.revenue)} revenue. Net profit ${usdk(s.netProfit)} (<b>${s.netMargin}% margin</b>). CAC ${usd(s.cac)}, AOV ${usd(s.aov)}.`;
+  if(q.includes("cac")||q.includes("acqui")) a=`Blended CAC is <b>${usd(s.cac)}</b>. New-customer ROAS ${s.newRoas}x vs returning ${s.returningRoas}x — acquisition runs near break-even and repeat purchases drive the profit.`;
+  else if(q.includes("ltv")||q.includes("retention")||q.includes("repeat")) a=`60-day LTV ≈ <b>$${D.ltv.cum[2]}</b>, repeat rate <b>${D.ltv.repeatRate}%</b>, CAC payback ${D.ltv.payback}. LTV roughly doubles CAC by month 6.`;
+  else if(q.includes("channel")||q.includes("meta")||q.includes("best")) a=`Best ROAS: Email/Klaviyo (${(D.channels[3].revenue/D.channels[3].spend).toFixed(0)}x, basically free), then Google ${(D.channels[1].revenue/D.channels[1].spend).toFixed(1)}x and Meta ${(D.channels[0].revenue/D.channels[0].spend).toFixed(1)}x. TikTok is the weakest paid channel.`;
+  else if(q.includes("profit")||q.includes("margin")||q.includes("p&l")) a=`Net profit <b>${usdk(s.netProfit)}</b> at ${s.netMargin}% margin. Contribution margin 53.8% after COGS, shipping & fees; ad spend is the biggest line after COGS.`;
+  $("aians").innerHTML="✦ "+a+' <span style="color:#9aa6b6">· demo answer from sample data</span>';
+  $("aians").classList.add("show");
+}
+
+/* charts registry to allow rebuild */
+const charts={};
+function mk(id,cfg){if(charts[id])charts[id].destroy();charts[id]=new Chart($(id),cfg);}
+const axis={y:{ticks:{color:"#9aa6b6",font:{size:11}},grid:{color:"#eef2f7"}},x:{ticks:{color:"#9aa6b6",font:{size:11},maxTicksLimit:7},grid:{display:false}}};
+
+function buildSummary(){
+  const s=D.summary;
+  const kpis=[
+    ["Revenue",usdk(s.revenue),"▲ 18% vs prev","up"],
+    ["Ad spend",usdk(s.adSpend),"▲ 5%","down"],
+    ["Blended ROAS",s.blendedRoas+"x","MER "+s.mer,"up"],
+    ["Net profit",usdk(s.netProfit),s.netMargin+"% margin","up"],
+    ["Blended CAC",usd(s.cac),"▼ 4%","up"],
+    ["AOV",usd(s.aov),"▲ 3%","up"],
+    ["Orders",s.orders.toLocaleString(),"CVR "+s.cvr+"%","up"],
+    ["Gross margin",s.grossMargin+"%","after COGS",""]
+  ];
+  $("kpis").innerHTML=kpis.map(k=>`<div class="tile"><div class="lab">${k[0]}</div><div class="val">${k[1]}</div><div class="sub ${k[3]}">${k[2]}</div></div>`).join("");
+  $("newRoas").textContent=s.newRoas+"x";$("retRoas").textContent=s.returningRoas+"x";
+  $("newPct").textContent=s.newCustPct+"%";$("cm").textContent=s.contributionMargin+"%";
+  mk("trendChart",{type:"line",data:{labels:D.dates,datasets:[
+    {label:"Revenue",data:D.rev,borderColor:"#1f9d57",backgroundColor:"#1f9d5715",borderWidth:2,pointRadius:0,tension:.35,fill:true},
+    {label:"Ad spend",data:D.spend,borderColor:"#e8612c",backgroundColor:"transparent",borderWidth:2,pointRadius:0,tension:.35}
+  ]},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:"index",intersect:false},plugins:{legend:{position:"bottom",labels:{boxWidth:10,font:{size:12}}}},scales:axis}});
+  mk("spendChart",{type:"doughnut",data:{labels:D.channels.filter(c=>c.spend>0).map(c=>c.name),datasets:[{data:D.channels.filter(c=>c.spend>0).map(c=>c.spend),backgroundColor:D.channels.filter(c=>c.spend>0).map(c=>c.color),borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,cutout:"62%",plugins:{legend:{position:"right",labels:{boxWidth:10,font:{size:12}}}}}});
+}
+function buildChannels(){
+  const totSpend=D.channels.reduce((s,c)=>s+c.spend,0);
+  $("chanRows").innerHTML=D.channels.map(c=>{
+    const roas=c.spend?(c.revenue/c.spend).toFixed(1)+"x":"—";
+    const cac=c.spend?usd(c.spend/c.orders):"—";
+    const pct=totSpend?Math.round(c.spend/totSpend*100)+"%":"0%";
+    return `<tr><td><span class="dot" style="background:${c.color}"></span>${c.name}</td><td class="r">${usd(c.spend)}</td><td class="r">${usd(c.revenue)}</td><td class="r">${roas}</td><td class="r">${c.orders}</td><td class="r">${cac}</td><td class="r">${pct}</td></tr>`;
+  }).join("");
+  const paid=D.channels.filter(c=>c.spend>0);
+  mk("roasChart",{type:"bar",data:{labels:paid.map(c=>c.name),datasets:[{data:paid.map(c=>+(c.revenue/c.spend).toFixed(1)),backgroundColor:paid.map(c=>c.color),borderRadius:5}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:axis}});
+  mk("revmixChart",{type:"doughnut",data:{labels:D.channels.map(c=>c.name),datasets:[{data:D.channels.map(c=>c.revenue),backgroundColor:D.channels.map(c=>c.color),borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,cutout:"62%",plugins:{legend:{position:"right",labels:{boxWidth:10,font:{size:11}}}}}});
+}
+function buildAttr(){
+  $("modelSel").innerHTML=D.attribution.models.map(m=>`<option>${m}</option>`).join("");
+  renderAttr();
+}
+function renderAttr(){
+  const m=$("modelSel").value||D.attribution.models[0];
+  const vals=D.attribution.byModel[m];
+  mk("attrChart",{type:"bar",data:{labels:D.attribution.channels,datasets:[{label:m,data:vals,backgroundColor:["#4267B2","#EA4335","#111827","#7c3aed","#1f9d57"],borderRadius:5}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>usd(c.raw)+" attributed"}}},scales:axis}});
+}
+function buildCreative(){
+  const rows=[...D.creatives].sort((a,b)=>b.roas-a.roas);
+  $("creativeRows").innerHTML=rows.map(c=>`<tr><td><span class="dot" style="background:${c.c}"></span>${c.name}</td><td><span class="tag">${c.platform}</span></td><td>${c.hook}</td><td class="r">${usd(c.spend)}</td><td class="r"><b>${c.roas}x</b></td><td class="r">${c.ctr}%</td><td class="r">${usd(c.cpa)}</td></tr>`).join("");
+  mk("creativeChart",{type:"bar",data:{labels:rows.map(c=>c.name),datasets:[
+    {label:"Spend",data:rows.map(c=>c.spend),backgroundColor:"#c7d0de",borderRadius:4,yAxisID:"y"},
+    {label:"ROAS",type:"line",data:rows.map(c=>c.roas),borderColor:"#3b7bf6",backgroundColor:"#3b7bf6",borderWidth:2,pointRadius:3,yAxisID:"y1",tension:.3}
+  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"bottom",labels:{boxWidth:10}}},scales:{y:{position:"left",ticks:{color:"#9aa6b6",font:{size:11},callback:v=>"$"+v/1000+"k"},grid:{color:"#eef2f7"}},y1:{position:"right",ticks:{color:"#3b7bf6",font:{size:11},callback:v=>v+"x"},grid:{display:false}},x:{ticks:{color:"#9aa6b6",font:{size:10},maxRotation:0},grid:{display:false}}}}});
+}
+function buildPnl(){
+  $("pnlRows").innerHTML=D.pnl.map(r=>{
+    const cls=r.kind==="net"?"net":(r.kind==="sub"?"sub":"");
+    const amt=(r.val<0?"-":"")+usd(Math.abs(r.val));
+    const ac=r.val<0?"amt neg":"amt";
+    return `<div class="pnl-row ${cls}"><div>${r.label}${r.note?`<span class="nt">${r.note}</span>`:""}</div><div class="${ac}">${amt}</div></div>`;
+  }).join("");
+  $("np2").textContent=usdk(D.summary.netProfit);$("nm2").textContent=D.summary.netMargin+"% net margin";
+}
+function buildRet(){
+  const l=D.ltv;
+  $("ltv60").textContent="$"+l.cum[2];$("rep").textContent=l.repeatRate+"%";$("aoc").textContent=l.avgOrders;$("pay").textContent=l.payback;
+  mk("ltvChart",{type:"line",data:{labels:l.labels,datasets:[{data:l.cum,borderColor:"#3b7bf6",backgroundColor:"#3b7bf615",borderWidth:2,pointRadius:0,tension:.35,fill:true}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>"$"+c.raw+" cumulative"}}},scales:{y:{ticks:{color:"#9aa6b6",font:{size:11},callback:v=>"$"+v},grid:{color:"#eef2f7"}},x:axis.x}}});
+  const co=D.cohorts;
+  const head="<tr><td class='h'>Cohort</td>"+co.retention[0].map((_,i)=>`<td class='h'>M${i}</td>`).join("")+"</tr>";
+  const body=co.months.map((mo,r)=>{
+    return "<tr><td class='h'>"+mo+"</td>"+co.retention[r].map(v=>{
+      if(v===0&&true){}
+      const empty=(v===0);
+      const op=empty?0:Math.max(.08,v/100);
+      const txt=empty?"":(v+"%");
+      return `<td style="background:rgba(59,123,246,${op});color:${op>.5?'#fff':'#0f1b2d'}">${txt}</td>`;
+    }).join("")+"</tr>";
+  }).join("");
+  $("cohTable").innerHTML=head+body;
+}
+function build(v){({summary:buildSummary,channels:buildChannels,attr:buildAttr,creative:buildCreative,pnl:buildPnl,ret:buildRet})[v]();}
+buildSummary();
+</script>
+</body>
+</html>
