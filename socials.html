@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Socials · Torque Optics</title>
+<style>
+  :root{
+    --bg:#f4f6f8; --panel:#ffffff; --ink:#0f1b2d; --muted:#6b7a90;
+    --sidebar:#0e1726; --sidebar-muted:#7f8ba0; --accent:#3b7bf6;
+    --line:#e6eaf0; --row:#eef2f7; --good:#1f9d57; --good-bg:#e3f5ea;
+    --warn-bg:#fdf3da; --warn:#b8861f;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+  .app{display:flex;min-height:100vh}
+  .side{width:248px;background:var(--sidebar);color:#fff;flex-shrink:0;padding:22px 16px}
+  .logo{display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:.5px;font-size:22px;margin:4px 6px 22px}
+  .logo svg{width:34px;height:34px}
+  .launch{background:#16223a;border-radius:10px;padding:12px 14px;margin-bottom:24px}
+  .launch .dot{width:9px;height:9px;border-radius:50%;background:#2ec27e;display:inline-block;margin-right:8px}
+  .launch b{font-size:14px}
+  .launch span{display:block;color:var(--sidebar-muted);font-size:12px;margin-top:3px;padding-left:17px}
+  .navgroup{color:var(--sidebar-muted);font-size:11px;letter-spacing:1px;margin:18px 8px 8px}
+  .nav a{display:flex;align-items:center;gap:11px;color:#c7d0de;text-decoration:none;padding:10px 12px;border-radius:9px;font-size:14.5px;margin-bottom:2px;cursor:pointer}
+  .nav a.active{background:var(--accent);color:#fff;font-weight:600}
+  .nav a:hover:not(.active){background:#16223a}
+  .ico{width:17px;height:17px;display:inline-block;opacity:.85}
+  .main{flex:1;padding:26px 34px}
+  .head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:16px}
+  .head h1{font-size:24px;margin:0 0 6px}
+  .head h1 .b{color:var(--accent)}
+  .head p{margin:0;color:var(--muted);font-size:14px;max-width:640px;line-height:1.5}
+  .badge{display:inline-flex;align-items:center;gap:7px;background:var(--warn-bg);color:var(--warn);border:1px solid #f0dca0;border-radius:20px;padding:7px 13px;font-size:12.5px;font-weight:600;white-space:nowrap}
+  .banner{background:#eef0ff;border:1px solid #c9c8f0;border-left:4px solid #6b68d6;border-radius:11px;padding:12px 16px;margin-bottom:20px;font-size:13px;color:#46456f;line-height:1.5}
+  .banner b{color:#2a2960}
+  /* rollup */
+  .roll{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
+  @media(max-width:820px){.roll{grid-template-columns:repeat(2,1fr)}}
+  .tile{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:15px 16px;box-shadow:0 1px 3px rgba(16,27,45,.05)}
+  .tile .lab{font-size:11.5px;letter-spacing:.4px;color:var(--muted);font-weight:600;text-transform:uppercase}
+  .tile .val{font-size:23px;font-weight:700;margin-top:5px}
+  .tile .sub{font-size:12px;margin-top:3px}
+  .up{color:var(--good)} .down{color:#c0392b}
+  /* platform cards */
+  .cards{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+  @media(max-width:820px){.cards{grid-template-columns:1fr}}
+  .pcard{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px 20px;box-shadow:0 1px 3px rgba(16,27,45,.06);cursor:pointer;transition:box-shadow .15s,transform .15s;text-decoration:none;color:inherit;display:block}
+  .pcard:hover{box-shadow:0 4px 14px rgba(16,27,45,.10);transform:translateY(-1px)}
+  .pcard .ph{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+  .pbadge{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:13px;letter-spacing:.5px}
+  .pcard .nm{font-weight:700;font-size:15.5px}
+  .pcard .hd{color:var(--muted);font-size:12.5px}
+  .pcard .conn{margin-left:auto;font-size:11px;font-weight:600;color:var(--warn);background:var(--warn-bg);border:1px solid #f0dca0;border-radius:20px;padding:3px 9px;white-space:nowrap}
+  .pmetrics{display:flex;gap:22px;align-items:flex-end}
+  .pmetrics .big{font-size:24px;font-weight:700;line-height:1}
+  .pmetrics .biglab{font-size:11.5px;color:var(--muted);margin-top:3px}
+  .pmetrics .g{font-size:13px;font-weight:600;margin-top:2px}
+  .spark{margin-left:auto;width:130px;height:42px}
+  .small{font-size:12px;color:var(--muted)}
+  .more{color:var(--accent);font-size:12.5px;margin-top:12px;font-weight:600}
+  /* detail */
+  .back{font-size:13px;color:var(--accent);text-decoration:none;cursor:pointer;display:inline-block;margin-bottom:14px}
+  .back:hover{text-decoration:underline}
+  .dhead{display:flex;align-items:center;gap:14px;margin-bottom:18px}
+  .dhead .pbadge{width:48px;height:48px;font-size:15px}
+  .dhead h2{margin:0;font-size:20px}
+  .dhead .hd{color:var(--muted);font-size:13px}
+  .connbtn{margin-left:auto;border:1px solid var(--line);background:#fff;border-radius:8px;padding:9px 15px;font-size:13px;font-weight:600;cursor:pointer;color:var(--ink)}
+  .connbtn:hover{background:#f0f4fa}
+  .kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:18px}
+  @media(max-width:760px){.kpis{grid-template-columns:repeat(2,1fr)}}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 18px;box-shadow:0 1px 3px rgba(16,27,45,.05);margin-bottom:18px}
+  .card h3{font-size:14px;margin:0 0 12px}
+  .chartbox{position:relative;height:240px}
+  table{width:100%;border-collapse:collapse}
+  thead th{text-align:left;font-size:11px;letter-spacing:.5px;color:var(--muted);font-weight:600;padding:0 10px 10px;border-bottom:1px solid var(--line)}
+  tbody td{padding:11px 10px;font-size:13.5px;border-bottom:1px solid var(--row);vertical-align:top}
+  tbody tr:last-child td{border-bottom:0}
+  .ttype{display:inline-block;background:var(--row);border-radius:6px;padding:2px 8px;font-size:11.5px;color:var(--muted)}
+  .cols2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  @media(max-width:760px){.cols2{grid-template-columns:1fr}}
+  .barrow{display:grid;grid-template-columns:120px 1fr 34px;align-items:center;gap:10px;font-size:13px;padding:5px 0}
+  .barwrap{height:13px;border-radius:4px;background:var(--row);overflow:hidden}
+  .barfill{height:100%;border-radius:4px}
+  .hide{display:none}
+  .src{text-align:center;color:#9aa6b6;font-size:12.5px;margin-top:24px}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="side">
+    <div class="logo">
+      <svg viewBox="0 0 64 32" fill="none"><circle cx="18" cy="16" r="11" stroke="#fff" stroke-width="3"/><circle cx="46" cy="16" r="11" stroke="#fff" stroke-width="3"/><path d="M29 16h6" stroke="#fff" stroke-width="3"/></svg>
+      TORQUE
+    </div>
+    <div class="launch"><span style="padding-left:0"><span class="dot"></span><b>Fulcrum launch</b></span><span>0 mentions tracked</span></div>
+    <div class="navgroup">LISTENING</div>
+    <nav class="nav">
+      <a href="index.html"><span class="ico">▦</span> Overview</a>
+      <a href="index.html"><span class="ico">💬</span> Conversation stream</a>
+      <a href="index.html"><span class="ico">🏆</span> Competitor scorecard</a>
+      <a href="search-interest.html"><span class="ico">📈</span> Search interest</a>
+      <a href="index.html"><span class="ico">🌐</span> Sources</a>
+    </nav>
+    <div class="navgroup">AUDIENCE</div>
+    <nav class="nav">
+      <a href="index.html"><span class="ico">👥</span> Influencers</a>
+      <a class="active"><span class="ico">📱</span> Socials</a>
+    </nav>
+    <div class="navgroup">WORKSPACE</div>
+    <nav class="nav">
+      <a href="index.html"><span class="ico">🛰️</span> Tracking setup</a>
+      <a href="index.html"><span class="ico">⬇</span> Reports &amp; export</a>
+      <a href="index.html"><span class="ico">⚙</span> Settings</a>
+    </nav>
+  </aside>
+
+  <main class="main">
+    <!-- OVERVIEW -->
+    <section id="view-overview">
+      <div class="head">
+        <div>
+          <h1>Socials · <span class="b">Torque Optics</span></h1>
+          <p>All your channels in one place. Click any platform for a deeper look at posts, audience, and growth.</p>
+        </div>
+        <span class="badge">● Sample data · not connected</span>
+      </div>
+      <div class="banner">These are <b>placeholder numbers</b> so you can see the layout. Connect each account (Instagram, TikTok, YouTube, Facebook, X) to replace them with live metrics — that step needs each platform's API set up.</div>
+      <div class="roll" id="rollup"></div>
+      <div class="cards" id="cards"></div>
+      <p class="src">Sample data for layout purposes · live metrics require connecting each platform's API.</p>
+    </section>
+
+    <!-- DETAIL -->
+    <section id="view-detail" class="hide">
+      <a class="back" onclick="showOverview()">← All socials</a>
+      <div id="detail"></div>
+    </section>
+  </main>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+const D = {"order":["instagram","tiktok","youtube","facebook","x"],"plat":{"instagram":{"name":"Instagram","handle":"@torqueoptics","color":"#E1306C","glyph":"IG","primary":"Followers","followers":8420,"growth":6.2,"posts":142,"engagement":3.8,"kpis":[["Reach (30d)","64,200"],["Impressions (30d)","98,500"],["Profile views (30d)","5,120"],["Avg. likes","210"],["Avg. comments","14"],["Saves (30d)","1,340"]],"series":[7928,7961,7990,8012,8026,8033,8035,8035,8038,8048,8065,8091,8122,8156,8188,8214,8233,8243,8247,8248,8249,8255,8268,8289,8317,8350,8383,8413,8436,8420],"posts_list":[{"date":"Jun 24","type":"Reel","likes":612,"comments":38,"cap":"POV: you can finally read your phone in full sun \u2600\ufe0f"},{"date":"Jun 21","type":"Carousel","likes":287,"comments":19,"cap":"Perfect Polarized\u2122 vs. the glare \u2014 swipe to see"},{"date":"Jun 18","type":"Image","likes":198,"comments":9,"cap":"New Fulcrum frames just dropped"},{"date":"Jun 15","type":"Reel","likes":540,"comments":31,"cap":"Screen test: which lens wins?"}],"locations":[["Los Angeles",18],["New York",12],["Austin",9],["Denver",7],["Miami",6]],"age":[["18-24",22],["25-34",41],["35-44",24],["45+",13]]},"tiktok":{"name":"TikTok","handle":"@torqueoptics","color":"#111827","glyph":"TT","primary":"Followers","followers":12900,"growth":14.5,"posts":64,"engagement":6.7,"kpis":[["Video views (30d)","410,000"],["Likes (30d)","52,300"],["Shares (30d)","3,910"],["Comments (30d)","2,180"],["Avg. watch time","6.2s"],["Profile views (30d)","9,640"]],"series":[11266,11347,11422,11487,11538,11579,11611,11642,11678,11723,11780,11849,11928,12010,12089,12160,12219,12265,12301,12333,12365,12404,12454,12517,12591,12671,12753,12829,12895,12900],"posts_list":[{"date":"Jun 25","type":"Video","likes":14200,"comments":640,"cap":"reading my texts at the beach, no squinting"},{"date":"Jun 22","type":"Video","likes":8800,"comments":410,"cap":"polarized but you can still see screens?? explained"},{"date":"Jun 19","type":"Video","likes":5100,"comments":230,"cap":"unboxing the Fulcrum"},{"date":"Jun 16","type":"Video","likes":9700,"comments":520,"cap":"glare check challenge"}],"locations":[["California",16],["Texas",13],["Florida",10],["New York",8],["Illinois",5]],"age":[["18-24",47],["25-34",33],["35-44",14],["45+",6]]},"youtube":{"name":"YouTube","handle":"Torque Optics","color":"#FF0000","glyph":"YT","primary":"Subscribers","followers":1840,"growth":3.1,"posts":23,"engagement":2.4,"kpis":[["Views (30d)","28,600"],["Watch time (hrs, 30d)","1,210"],["Avg. view duration","2:48"],["Likes (30d)","1,920"],["Comments (30d)","240"],["Impressions CTR","4.6%"]],"series":[1784,1789,1794,1797,1798,1798,1797,1795,1794,1794,1796,1800,1805,1811,1816,1820,1822,1823,1822,1820,1819,1818,1819,1822,1826,1832,1837,1842,1845,1840],"posts_list":[{"date":"Jun 20","type":"Video","likes":640,"comments":58,"cap":"How Perfect Polarized\u2122 lenses actually work"},{"date":"Jun 6","type":"Short","likes":820,"comments":41,"cap":"Screen visibility test in 30 seconds"},{"date":"May 28","type":"Video","likes":410,"comments":33,"cap":"Fulcrum frame review + durability test"}],"locations":[["United States",62],["Canada",11],["UK",8],["Australia",6],["Germany",4]],"age":[["18-24",15],["25-34",38],["35-44",29],["45+",18]]},"facebook":{"name":"Facebook","handle":"Torque Optics","color":"#1877F2","glyph":"FB","primary":"Followers","followers":3260,"growth":1.4,"posts":88,"engagement":1.1,"kpis":[["Reach (30d)","21,400"],["Impressions (30d)","38,900"],["Page visits (30d)","2,030"],["Avg. reactions","46"],["Avg. comments","5"],["Link clicks (30d)","880"]],"series":[3214,3222,3228,3232,3232,3230,3225,3221,3217,3216,3217,3222,3229,3237,3245,3250,3252,3251,3248,3243,3239,3236,3236,3239,3245,3253,3261,3267,3271,3260],"posts_list":[{"date":"Jun 23","type":"Image","likes":88,"comments":7,"cap":"Read your screen through polarized lenses"},{"date":"Jun 17","type":"Link","likes":52,"comments":4,"cap":"Why we built Perfect Polarized\u2122"},{"date":"Jun 10","type":"Image","likes":61,"comments":6,"cap":"Summer-ready frames"}],"locations":[["Texas",14],["Florida",12],["California",11],["Ohio",6],["Georgia",5]],"age":[["18-24",9],["25-34",27],["35-44",31],["45+",33]]},"x":{"name":"X","handle":"@torqueoptics","color":"#0f1419","glyph":"X","primary":"Followers","followers":2110,"growth":0.8,"posts":305,"engagement":0.9,"kpis":[["Impressions (30d)","44,000"],["Engagements (30d)","3,960"],["Profile visits (30d)","1,640"],["Avg. likes","9"],["Avg. reposts","2"],["Link clicks (30d)","410"]],"series":[2093,2098,2101,2103,2103,2101,2098,2094,2091,2090,2091,2093,2098,2102,2107,2110,2111,2110,2107,2104,2100,2098,2097,2099,2103,2107,2112,2116,2118,2110],"posts_list":[{"date":"Jun 25","type":"Post","likes":21,"comments":3,"cap":"polarized lenses you can read your phone through. that's it. that's the tweet"},{"date":"Jun 23","type":"Post","likes":14,"comments":1,"cap":"glare is a solved problem now"},{"date":"Jun 20","type":"Post","likes":33,"comments":5,"cap":"Fulcrum launch is live"}],"locations":[["California",17],["New York",13],["Texas",10],["Washington",6],["Massachusetts",5]],"age":[["18-24",18],["25-34",39],["35-44",27],["45+",16]]}}};
+const fmt = n => n.toLocaleString("en-US");
+const arrow = g => g>=0 ? `<span class="up">▲ ${g}%</span>` : `<span class="down">▼ ${Math.abs(g)}%</span>`;
+
+function sparkSVG(series, color){
+  const w=130,h=42,p=3;
+  const min=Math.min(...series),max=Math.max(...series),rng=(max-min)||1;
+  const pts=series.map((v,i)=>{
+    const x=p+i/(series.length-1)*(w-2*p);
+    const y=h-p-((v-min)/rng)*(h-2*p);
+    return [x,y];
+  });
+  const d=pts.map((pt,i)=>(i?"L":"M")+pt[0].toFixed(1)+" "+pt[1].toFixed(1)).join(" ");
+  const area=d+` L ${w-p} ${h-p} L ${p} ${h-p} Z`;
+  return `<svg class="spark" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
+    <path d="${area}" fill="${color}" opacity="0.10"/>
+    <path d="${d}" fill="none" stroke="${color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  </svg>`;
+}
+
+function renderRollup(){
+  let totFoll=0, totNew=0;
+  D.order.forEach(k=>{const p=D.plat[k];totFoll+=p.followers;totNew+=p.followers-Math.round(p.followers/(1+p.growth/100));});
+  const blended=(D.order.reduce((s,k)=>s+D.plat[k].engagement*D.plat[k].followers,0)/totFoll).toFixed(1);
+  const tiles=[
+    ["Total audience", fmt(totFoll), `across ${D.order.length} platforms`, ""],
+    ["Net new (30d)", "+"+fmt(totNew), arrow(+(totNew/totFoll*100).toFixed(1)), ""],
+    ["Blended engagement", blended+"%", "weighted by audience", ""],
+    ["Top growth", topGrowth(), "fastest-growing channel", ""]
+  ];
+  document.getElementById("rollup").innerHTML=tiles.map(t=>
+    `<div class="tile"><div class="lab">${t[0]}</div><div class="val">${t[1]}</div><div class="sub small">${t[2]}</div></div>`).join("");
+}
+function topGrowth(){
+  let best=D.order[0];D.order.forEach(k=>{if(D.plat[k].growth>D.plat[best].growth)best=k;});
+  return D.plat[best].name+" +"+D.plat[best].growth+"%";
+}
+
+function renderCards(){
+  document.getElementById("cards").innerHTML=D.order.map(k=>{
+    const p=D.plat[k];
+    return `<a class="pcard" onclick="showDetail('${k}')">
+      <div class="ph">
+        <div class="pbadge" style="background:${p.color}">${p.glyph}</div>
+        <div><div class="nm">${p.name}</div><div class="hd">${p.handle}</div></div>
+        <div class="conn">Not connected</div>
+      </div>
+      <div class="pmetrics">
+        <div>
+          <div class="big">${fmt(p.followers)}</div>
+          <div class="biglab">${p.primary}</div>
+          <div class="g">${arrow(p.growth)} <span class="small">30d</span></div>
+        </div>
+        <div>
+          <div class="big">${p.engagement}%</div>
+          <div class="biglab">Engagement</div>
+        </div>
+        ${sparkSVG(p.series,p.color)}
+      </div>
+      <div class="more">View ${p.name} details →</div>
+    </a>`;
+  }).join("");
+}
+
+let chart=null;
+function showDetail(k){
+  const p=D.plat[k];
+  document.getElementById("view-overview").classList.add("hide");
+  document.getElementById("view-detail").classList.remove("hide");
+  const kpis=p.kpis.map(x=>`<div class="tile"><div class="lab">${x[0]}</div><div class="val">${x[1]}</div></div>`).join("");
+  const posts=p.posts_list.map(po=>`<tr>
+      <td>${po.date}</td><td><span class="ttype">${po.type}</span></td>
+      <td>${po.cap}</td><td style="text-align:right">${fmt(po.likes)}</td><td style="text-align:right">${fmt(po.comments)}</td></tr>`).join("");
+  const locMax=Math.max(...p.locations.map(l=>l[1]));
+  const locs=p.locations.map(l=>`<div class="barrow"><span>${l[0]}</span><div class="barwrap"><div class="barfill" style="width:${(l[1]/locMax*100)}%;background:${p.color}"></div></div><span class="small" style="text-align:right">${l[1]}%</span></div>`).join("");
+  const ages=p.age.map(a=>`<div class="barrow"><span>${a[0]}</span><div class="barwrap"><div class="barfill" style="width:${a[1]}%;background:${p.color}"></div></div><span class="small" style="text-align:right">${a[1]}%</span></div>`).join("");
+  document.getElementById("detail").innerHTML=`
+    <div class="dhead">
+      <div class="pbadge" style="background:${p.color}">${p.glyph}</div>
+      <div><h2>${p.name}</h2><div class="hd">${p.handle} · <span style="color:var(--warn)">Not connected</span></div></div>
+      <button class="connbtn" onclick="alert('Connecting ${p.name} requires setting up its API (OAuth). This button is a placeholder until that backend step is in place.')">Connect ${p.name}</button>
+    </div>
+    <div class="kpis">
+      <div class="tile"><div class="lab">${p.primary}</div><div class="val">${fmt(p.followers)}</div><div class="sub">${arrow(p.growth)} <span class="small">30d</span></div></div>
+      <div class="tile"><div class="lab">Engagement rate</div><div class="val">${p.engagement}%</div></div>
+      <div class="tile"><div class="lab">Posts</div><div class="val">${fmt(p.posts)}</div></div>
+    </div>
+    <div class="card"><h3>${p.primary} · last 30 days</h3><div class="chartbox"><canvas id="growthChart"></canvas></div></div>
+    <div class="kpis">${kpis}</div>
+    <div class="card"><h3>Recent posts</h3>
+      <table><thead><tr><th>Date</th><th>Type</th><th>Caption</th><th style="text-align:right">Likes</th><th style="text-align:right">Comments</th></tr></thead>
+      <tbody>${posts}</tbody></table></div>
+    <div class="cols2">
+      <div class="card"><h3>Top locations</h3>${locs}</div>
+      <div class="card"><h3>Audience age</h3>${ages}</div>
+    </div>
+    <p class="src">Sample data shown for layout. Connect ${p.name} to populate these with live numbers.</p>`;
+  if(chart) chart.destroy();
+  chart=new Chart(document.getElementById("growthChart"),{
+    type:"line",
+    data:{labels:p.series.map((_,i)=>i+1),datasets:[{data:p.series,borderColor:p.color,backgroundColor:p.color,borderWidth:2,pointRadius:0,tension:.35,fill:{target:"origin",above:p.color+"15"}}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{title:i=>"Day "+i[0].label}}},
+      scales:{y:{ticks:{color:"#9aa6b6",font:{size:11}},grid:{color:"#eef2f7"}},x:{ticks:{color:"#9aa6b6",font:{size:11},maxTicksLimit:6},grid:{display:false}}}}
+  });
+  window.scrollTo(0,0);
+}
+function showOverview(){
+  document.getElementById("view-detail").classList.add("hide");
+  document.getElementById("view-overview").classList.remove("hide");
+  window.scrollTo(0,0);
+}
+
+renderRollup();
+renderCards();
+</script>
+</body>
+</html>
